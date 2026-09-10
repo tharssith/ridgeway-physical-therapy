@@ -4,8 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CLINIC, formatUsd } from "@/lib/clinic";
-import { useSession } from "@/hooks/use-session";
+import { CLINIC } from "@/lib/clinic";
 
 function when(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -19,7 +18,6 @@ function when(iso: string) {
 }
 
 export default function StaffBookingsPage() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const { data } = useQuery({
     queryKey: ["staff-bookings"],
@@ -29,11 +27,11 @@ export default function StaffBookingsPage() {
     },
   });
 
-  async function cancel(id: string, refundOverride = false) {
+  async function cancel(id: string) {
     await fetch(`/api/bookings/${id}/cancel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason: "Cancelled by clinic", refundOverride }),
+      body: JSON.stringify({ reason: "Cancelled by clinic" }),
     });
     await queryClient.invalidateQueries({ queryKey: ["staff-bookings"] });
   }
@@ -51,8 +49,6 @@ export default function StaffBookingsPage() {
             startTime: string;
             visitReason: string;
             status: string;
-            paymentStatus: string | null;
-            amount: number | null;
           }) => (
             <Card key={row.id} className="p-5">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -65,12 +61,6 @@ export default function StaffBookingsPage() {
                   {row.visitReason ? <p className="mt-2 text-sm">{row.visitReason}</p> : null}
                   <div className="mt-2 flex gap-2">
                     <Badge>{row.status}</Badge>
-                    {row.paymentStatus ? (
-                      <Badge tone={row.paymentStatus === "SUCCEEDED" ? "success" : "neutral"}>
-                        {row.paymentStatus}
-                        {row.amount != null ? ` · ${formatUsd(row.amount)}` : ""}
-                      </Badge>
-                    ) : null}
                   </div>
                 </div>
                 {row.status === "CONFIRMED" ? (
@@ -78,11 +68,6 @@ export default function StaffBookingsPage() {
                     <Button variant="secondary" onClick={() => cancel(row.id)}>
                       Cancel
                     </Button>
-                    {session?.role === "ADMIN" ? (
-                      <Button variant="secondary" onClick={() => cancel(row.id, true)}>
-                        Cancel and refund
-                      </Button>
-                    ) : null}
                   </div>
                 ) : null}
               </div>

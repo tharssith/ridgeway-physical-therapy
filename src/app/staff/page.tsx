@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CLINIC, formatUsd } from "@/lib/clinic";
-import { useSession } from "@/hooks/use-session";
+import { CLINIC } from "@/lib/clinic";
 
 function when(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -23,7 +22,6 @@ function when(iso: string) {
 }
 
 export default function StaffHomePage() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const date = format(new Date(), "yyyy-MM-dd");
   const [message, setMessage] = useState("");
@@ -68,7 +66,7 @@ export default function StaffHomePage() {
         <h1 className="font-heading text-3xl font-extrabold">Clinic schedule</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card className="p-5">
           <p className="text-sm text-ink-soft">Today’s appointments</p>
           <p className="mt-2 text-3xl font-semibold">{overview.data?.today?.length ?? 0}</p>
@@ -77,23 +75,12 @@ export default function StaffHomePage() {
           <p className="text-sm text-ink-soft">Next 7 days</p>
           <p className="mt-2 text-3xl font-semibold">{overview.data?.upcoming?.length ?? 0}</p>
         </Card>
-        {session?.role === "ADMIN" ? (
-          <Card className="p-5">
-            <p className="text-sm text-ink-soft">Collected this month</p>
-            <p className="mt-2 text-3xl font-semibold">{formatUsd(overview.data?.monthRevenue ?? 0)}</p>
-          </Card>
-        ) : (
-          <Card className="p-5">
-            <p className="text-sm text-ink-soft">Payments this month</p>
-            <p className="mt-2 text-3xl font-semibold">{overview.data?.monthPayments ?? 0}</p>
-          </Card>
-        )}
       </div>
 
       <section>
         <h2 className="text-xl font-semibold">Today</h2>
         <div className="mt-3 space-y-2">
-          {(overview.data?.today ?? []).map((row: { id: string; patientName: string; startTime: string; visitReason: string; therapistName: string; paymentStatus: string | null }) => (
+          {(overview.data?.today ?? []).map((row: { id: string; patientName: string; startTime: string; visitReason: string; therapistName: string }) => (
             <Card key={row.id} className="px-5 py-4">
               <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
                 <p className="text-lg font-semibold">{row.patientName}</p>
@@ -102,7 +89,6 @@ export default function StaffHomePage() {
               <p className="text-sm">
                 {row.visitReason ? `${row.therapistName} · ${row.visitReason}` : row.therapistName}
               </p>
-              {row.paymentStatus ? <Badge className="mt-2">{row.paymentStatus}</Badge> : null}
             </Card>
           ))}
           {!overview.data?.today?.length ? (

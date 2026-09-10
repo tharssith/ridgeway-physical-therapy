@@ -11,7 +11,6 @@ const NAV = [
   { href: "/staff", label: "Schedule" },
   { href: "/staff/bookings", label: "Bookings" },
   { href: "/staff/patients", label: "Patients" },
-  { href: "/staff/payments", label: "Payments" },
   { href: "/staff/settings", label: "Settings" },
 ];
 
