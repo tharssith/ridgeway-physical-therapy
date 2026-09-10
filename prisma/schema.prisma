@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  PATIENT
+  THERAPIST
+  ADMIN
+}
+
+enum SlotStatus {
+  AVAILABLE
+  HELD
+  BOOKED
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum VisitType {
+  FIRST_TIME
+  RETURNING
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(PATIENT)
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  therapistProfile Therapist?
+  bookings         Booking[]          @relation("PatientBookings")
+  heldSlots        AvailabilitySlot[] @relation("HeldBy")
+}
+
+model Therapist {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty   String
+  bio         String
+  credentials String
+  photoUrl    String?
+  active      Boolean @default(true)
+  rate30      Int
+  rate45      Int
+  rate60      Int
+
+  workingHours WorkingHours[]
+  slots        AvailabilitySlot[]
+  bookings     Booking[]
+  blockedTimes BlockedTime[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WorkingHours {
+  id           String    @id @default(cuid())
+  therapistId  String
+  therapist    Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  dayOfWeek    Int
+  startMinutes Int
+  endMinutes   Int
+  slotDuration Int
+
+  @@unique([therapistId, dayOfWeek])
+}
+
+model AvailabilitySlot {
+  id          String     @id @default(cuid())
+  therapistId String
+  therapist   Therapist  @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  startTime   DateTime
+  endTime     DateTime
+  status      SlotStatus @default(AVAILABLE)
+  heldUntil   DateTime?
+  heldById    String?
+  heldBy      User?      @relation("HeldBy", fields: [heldById], references: [id])
+
+  booking Booking?
+
+  @@unique([therapistId, startTime])
+  @@index([therapistId, startTime, status])
+  @@index([heldUntil])
+}
+
+model Booking {
+  id           String            @id @default(cuid())
+  slotId       String            @unique
+  slot         AvailabilitySlot  @relation(fields: [slotId], references: [id])
+  patientId    String
+  patient      User              @relation("PatientBookings", fields: [patientId], references: [id])
+  therapistId  String
+  therapist    Therapist         @relation(fields: [therapistId], references: [id])
+  status       BookingStatus     @default(PENDING_PAYMENT)
+  visitReason  String
+  visitType    VisitType
+  notes        String?
+  cancelledAt  DateTime?
+  cancelledBy  String?
+  cancelReason String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  payment Payment?
+
+  @@index([patientId, status])
+  @@index([therapistId, status])
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  bookingId             String        @unique
+  booking               Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount                Int
+  currency              String        @default("usd")
+  stripePaymentIntentId String?       @unique
+  status                PaymentStatus @default(PENDING)
+  refundedAt            DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}
+
+model BlockedTime {
+  id          String    @id @default(cuid())
+  therapistId String
+  therapist   Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  startTime   DateTime
+  endTime     DateTime
+  reason      String
+  createdAt   DateTime  @default(now())
+
+  @@index([therapistId, startTime, endTime])
+}
+
+model ClinicSettings {
+  id                String @id @default("default")
+  name              String
+  addressLine1      String
+  addressLine2      String?
+  city              String
+  state             String
+  zip               String
+  phone             String
+  cancellationHours Int    @default(24)
+  holdMinutes       Int    @default(8)
+  slotWindowWeeks   Int    @default(4)
+}
