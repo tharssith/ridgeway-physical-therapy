@@ -8,6 +8,9 @@ export type Session = {
   email: string;
   role: "PATIENT" | "THERAPIST" | "ADMIN";
   phone: string | null;
+  dateOfBirth: string | null;
+  photoUrl: string | null;
+  memberNumber: string;
 };
 
 export function useSession() {

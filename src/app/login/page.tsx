@@ -46,8 +46,8 @@ function LoginForm() {
 
   return (
     <Card className="w-full max-w-md p-8">
-      <h1 className="font-heading text-2xl font-extrabold">Sign in</h1>
-      <p className="mt-2 text-ink-soft">Use the email on your Ridgeway account.</p>
+      <h1 className="font-heading text-2xl font-extrabold">Check in</h1>
+      <p className="mt-2 text-ink-soft">Sign in to open your patient card and upcoming visits.</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>
@@ -64,8 +64,11 @@ function LoginForm() {
       </form>
       <p className="mt-6 text-sm text-ink-soft">
         New patient?{" "}
-        <Link href="/register" className="font-semibold text-primary">
-          Create an account
+        <Link
+          href={params.get("next") ? `/register?next=${encodeURIComponent(params.get("next")!)}` : "/register"}
+          className="font-semibold text-primary"
+        >
+          Create your patient card
         </Link>
       </p>
     </Card>

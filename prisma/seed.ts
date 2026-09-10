@@ -2,6 +2,7 @@ import { PrismaClient, type VisitType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { addDays, addMinutes, format, setHours, setMinutes } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { createMemberNumber } from "../src/lib/patient";
 
 const prisma = new PrismaClient();
 const TZ = process.env.CLINIC_TZ ?? "America/Los_Angeles";
@@ -47,6 +48,7 @@ async function main() {
       passwordHash,
       role: "ADMIN",
       phone: "(206) 555-0100",
+      memberNumber: createMemberNumber(),
     },
   });
 
@@ -57,6 +59,8 @@ async function main() {
       passwordHash,
       role: "PATIENT",
       phone: "(206) 555-0199",
+      dateOfBirth: new Date("1988-04-12T00:00:00.000Z"),
+      memberNumber: createMemberNumber(),
     },
   });
 
@@ -67,6 +71,8 @@ async function main() {
       passwordHash,
       role: "PATIENT",
       phone: "(206) 555-0172",
+      dateOfBirth: new Date("1994-09-03T00:00:00.000Z"),
+      memberNumber: createMemberNumber(),
     },
   });
 
@@ -151,6 +157,7 @@ async function main() {
         passwordHash,
         role: "THERAPIST",
         phone: t.phone,
+        memberNumber: createMemberNumber(),
       },
     });
     const therapist = await prisma.therapist.create({

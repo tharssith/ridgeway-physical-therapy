@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { dateOnly } from "@/lib/patient";
 import type { Role } from "@prisma/client";
 
 const COOKIE = "ridgeway_session";
@@ -12,6 +13,9 @@ export type SessionUser = {
   email: string;
   role: Role;
   phone: string | null;
+  dateOfBirth: string | null;
+  photoUrl: string | null;
+  memberNumber: string;
 };
 
 type TokenPayload = JWTPayload & {
@@ -58,6 +62,9 @@ export async function verifySessionToken(token: string): Promise<SessionUser | n
       email: String(payload.email),
       role: payload.role as Role,
       phone: null,
+      dateOfBirth: null,
+      photoUrl: null,
+      memberNumber: "",
     };
   } catch {
     return null;
@@ -89,9 +96,22 @@ export async function getSession(): Promise<SessionUser | null> {
   if (!session) return null;
   const user = await prisma.user.findUnique({
     where: { id: session.id },
-    select: { id: true, name: true, email: true, role: true, phone: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      phone: true,
+      dateOfBirth: true,
+      photoUrl: true,
+      memberNumber: true,
+    },
   });
-  return user;
+  if (!user) return null;
+  return {
+    ...user,
+    dateOfBirth: dateOnly(user.dateOfBirth),
+  };
 }
 
 export async function requireSession() {

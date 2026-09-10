@@ -26,9 +26,21 @@ export async function POST(request: Request) {
     email: user.email,
     role: user.role,
     phone: user.phone,
+    dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : null,
+    photoUrl: user.photoUrl,
+    memberNumber: user.memberNumber,
   });
 
   return Response.json({
-    user: { id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : null,
+      photoUrl: user.photoUrl,
+      memberNumber: user.memberNumber,
+    },
   });
 }

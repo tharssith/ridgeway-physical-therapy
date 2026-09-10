@@ -11,8 +11,7 @@ export async function proxy(request: NextRequest) {
   const needsAuth =
     pathname.startsWith("/account") ||
     pathname.startsWith("/staff") ||
-    pathname.startsWith("/book/pay") ||
-    pathname.startsWith("/book/confirmation");
+    pathname.startsWith("/book");
 
   if (!needsAuth) return NextResponse.next();
 
@@ -40,10 +39,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/account/:path*",
-    "/staff/:path*",
-    "/book/pay/:path*",
-    "/book/confirmation/:path*",
-  ],
+  matcher: ["/account/:path*", "/staff/:path*", "/book", "/book/:path*"],
 };

@@ -33,6 +33,8 @@ export async function GET() {
         name: p.name,
         email: p.email,
         phone: p.phone,
+        dateOfBirth: p.dateOfBirth ? p.dateOfBirth.toISOString().slice(0, 10) : null,
+        memberNumber: p.memberNumber,
         bookingCount: p._count.bookings,
         lastVisit: p.bookings[0]?.slot.startTime.toISOString() ?? null,
       })),

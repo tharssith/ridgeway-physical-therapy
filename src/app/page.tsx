@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { format } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { Button } from "@/components/ui/button";
+import { HomeCheckIn } from "@/components/home-check-in";
 import { HomeSearchBar } from "@/components/home-search-bar";
 import { TherapistDirectory } from "@/components/therapist-directory";
 import { CLINIC, clinicAddress } from "@/lib/clinic";
@@ -49,14 +48,7 @@ export default async function HomePage() {
               Live openings with licensed DPTs. Hold a time, pay online, and get a written visit
               confirmation.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
-                <Link href="#therapists">Browse therapists</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="#how-it-works">How it works</Link>
-              </Button>
-            </div>
+            <HomeCheckIn />
             <p className="mt-6 text-sm text-white/75">
               {clinicAddress()} · {CLINIC.phone}
             </p>
@@ -101,10 +93,10 @@ export default async function HomePage() {
           <h2 className="font-heading text-3xl font-extrabold">How it works</h2>
           <div className="mt-8 grid gap-8 md:grid-cols-4">
             {[
-              { n: "1", t: "Choose a therapist", d: "Filter by specialty and see credentials, rates, and next openings." },
-              { n: "2", t: "Pick a live time", d: "The grid updates as other patients hold or book the same day." },
-              { n: "3", t: "Hold while you pay", d: `Your time is reserved for ${CLINIC.holdMinutes} minutes during checkout.` },
-              { n: "4", t: "Get confirmation", d: "A written appointment summary is issued after payment succeeds." },
+              { n: "1", t: "Check in", d: "Sign in or create your patient card with your name, photo, date of birth, and phone." },
+              { n: "2", t: "Choose a therapist", d: "Filter by specialty and see credentials, rates, and next openings." },
+              { n: "3", t: "Pick a live time", d: "The grid updates as other patients hold or book the same day." },
+              { n: "4", t: "Hold while you pay", d: `Your time is reserved for ${CLINIC.holdMinutes} minutes during checkout.` },
             ].map((step) => (
               <div key={step.n}>
                 <p className="font-heading text-sm font-bold text-primary">{step.n}</p>

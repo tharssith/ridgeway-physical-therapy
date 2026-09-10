@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, hashPassword } from "@/lib/auth";
 import { jsonError } from "@/lib/utils";
 import { generateSlotsForWindow } from "@/lib/slots";
+import { createMemberNumber } from "@/lib/patient";
 
 const createSchema = z.object({
   name: z.string().min(2),
@@ -72,6 +73,7 @@ export async function POST(request: Request) {
             phone: parsed.data.phone,
             passwordHash: await hashPassword(parsed.data.password),
             role: "THERAPIST",
+            memberNumber: createMemberNumber(),
           },
         },
         workingHours: { create: parsed.data.workingHours },

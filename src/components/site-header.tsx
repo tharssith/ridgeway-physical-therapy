@@ -40,7 +40,7 @@ export function SiteHeader() {
                 href={user.role === "PATIENT" ? "/account" : "/staff"}
                 className="hidden text-white/80 hover:text-white sm:inline"
               >
-                {user.role === "PATIENT" ? "My appointments" : "Clinic"}
+                {user.role === "PATIENT" ? "My card" : "Clinic"}
               </Link>
               <span className="hidden md:inline">{user.name.split(" ")[0]}</span>
               <Button variant="outline" size="sm" onClick={logout}>
@@ -53,7 +53,7 @@ export function SiteHeader() {
                 Sign in
               </Link>
               <Button asChild size="sm">
-                <Link href="/book">Book now</Link>
+                <Link href="/login?next=/book">Book now</Link>
               </Button>
             </>
           )}
