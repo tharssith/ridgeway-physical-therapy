@@ -27,10 +27,13 @@ export async function POST(
     if (!booking || booking.patientId !== session.id) {
       return jsonError("Booking not found.", 404);
     }
+    if (!booking.slotId || !booking.slot) {
+      return jsonError("This appointment cannot be rescheduled.");
+    }
     if (booking.status !== "CONFIRMED") {
       return jsonError("Only confirmed appointments can be rescheduled.");
     }
-    if (!canReschedule(booking.slot.startTime)) {
+    if (!canReschedule(booking.visitStart)) {
       return jsonError(
         `Rescheduling is not available inside ${CLINIC.cancellationHours} hours of your visit. Please call the clinic.`,
         403,
@@ -38,7 +41,7 @@ export async function POST(
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM "AvailabilitySlot" WHERE id = ${booking.slotId} FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM "AvailabilitySlot" WHERE id = ${booking.slotId!} FOR UPDATE`;
       await tx.$queryRaw`SELECT id FROM "AvailabilitySlot" WHERE id = ${parsed.data.slotId} FOR UPDATE`;
 
       const next = await tx.availabilitySlot.findUnique({ where: { id: parsed.data.slotId } });
@@ -61,13 +64,17 @@ export async function POST(
       }
 
       const oldSlot = await tx.availabilitySlot.update({
-        where: { id: booking.slotId },
+        where: { id: booking.slotId! },
         data: { status: "AVAILABLE", heldUntil: null, heldById: null },
       });
 
       const updated = await tx.booking.update({
         where: { id: booking.id },
-        data: { slotId: next.id },
+        data: {
+          slotId: next.id,
+          visitStart: next.startTime,
+          visitEnd: next.endTime,
+        },
       });
 
       const newSlot = await tx.availabilitySlot.findUniqueOrThrow({ where: { id: next.id } });

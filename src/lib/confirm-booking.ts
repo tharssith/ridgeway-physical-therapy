@@ -18,7 +18,7 @@ export async function confirmPaidBooking(opts: {
       therapist: { include: { user: true } },
     },
   });
-  if (!booking || !booking.payment) return null;
+  if (!booking || !booking.payment || !booking.slotId || !booking.slot) return null;
   if (booking.status === "CONFIRMED") return booking;
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -26,8 +26,9 @@ export async function confirmPaidBooking(opts: {
       where: { id: booking.id },
       data: { status: "CONFIRMED" },
     });
+    const slotId = booking.slotId;
     const nextSlot = await tx.availabilitySlot.update({
-      where: { id: booking.slotId },
+      where: { id: slotId as string },
       data: { status: "BOOKED", heldUntil: null },
     });
     await tx.payment.update({

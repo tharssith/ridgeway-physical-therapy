@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   const slots = await prisma.availabilitySlot.findMany({
     where: {
       therapistId,
-      startTime: { gte: start, lte: end },
+      startTime: { gte: start, lte: end, gt: new Date() },
       status: { in: ["AVAILABLE", "HELD", "BOOKED"] },
     },
     orderBy: { startTime: "asc" },

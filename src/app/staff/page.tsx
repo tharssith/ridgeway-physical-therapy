@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CLINIC } from "@/lib/clinic";
+import { useNow } from "@/hooks/use-now";
+import { CheckInPanel } from "@/components/staff/check-in-panel";
 
 function when(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -25,6 +27,13 @@ export default function StaffHomePage() {
   const queryClient = useQueryClient();
   const date = format(new Date(), "yyyy-MM-dd");
   const [message, setMessage] = useState("");
+  const now = useNow(1000);
+  const liveTime = new Date(now).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: CLINIC.timezone,
+  });
 
   const overview = useQuery({
     queryKey: ["staff-overview"],
@@ -40,7 +49,18 @@ export default function StaffHomePage() {
       const res = await fetch(`/api/staff/schedule?date=${date}`);
       return res.json();
     },
+    refetchInterval: 8_000,
   });
+
+  const liveSlots = useMemo(() => {
+    return ((schedule.data?.slots ?? []) as Array<{
+      id: string;
+      startTime: string;
+      status: string;
+      patientName: string | null;
+      therapistName: string;
+    }>).filter((slot) => new Date(slot.startTime).getTime() > now);
+  }, [schedule.data?.slots, now]);
 
   async function blockTime(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,7 +84,10 @@ export default function StaffHomePage() {
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Today</p>
         <h1 className="font-heading text-3xl font-extrabold">Clinic schedule</h1>
+        <p className="mt-2 text-sm text-ink-soft">Live clinic time · {liveTime}</p>
       </div>
+
+      <CheckInPanel />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="p-5">
@@ -80,7 +103,9 @@ export default function StaffHomePage() {
       <section>
         <h2 className="text-xl font-semibold">Today</h2>
         <div className="mt-3 space-y-2">
-          {(overview.data?.today ?? []).map((row: { id: string; patientName: string; startTime: string; visitReason: string; therapistName: string }) => (
+          {(overview.data?.today ?? [])
+            .filter((row: { startTime: string; endTime?: string }) => new Date(row.endTime ?? row.startTime).getTime() > now)
+            .map((row: { id: string; patientName: string; startTime: string; visitReason: string; therapistName: string }) => (
             <Card key={row.id} className="px-5 py-4">
               <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
                 <p className="text-lg font-semibold">{row.patientName}</p>
@@ -101,10 +126,7 @@ export default function StaffHomePage() {
         <div>
           <h2 className="text-xl font-semibold">Openings and booked times</h2>
           <div className="mt-3 space-y-2">
-            {(schedule.data?.slots ?? [])
-              .filter((slot: { startTime: string }) => slot.startTime.slice(0, 10) === date || true)
-              .slice(0, 18)
-              .map((slot: { id: string; startTime: string; status: string; patientName: string | null; therapistName: string }) => (
+            {liveSlots.slice(0, 18).map((slot) => (
                 <div key={slot.id} className="flex items-center justify-between border border-border bg-card px-4 py-3">
                   <div>
                     <p className="font-semibold">
@@ -118,6 +140,9 @@ export default function StaffHomePage() {
                   </Badge>
                 </div>
               ))}
+            {liveSlots.length === 0 ? (
+              <p className="text-ink-soft">No remaining times today. Past slots drop off as clinic time moves.</p>
+            ) : null}
           </div>
         </div>
         <Card className="h-fit p-5">

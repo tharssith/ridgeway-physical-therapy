@@ -26,7 +26,7 @@ export async function GET(
     const isStaff = session.role === "ADMIN" || session.role === "THERAPIST";
     if (!isOwner && !isStaff) return jsonError("Forbidden", 403);
 
-    const duration = slotDurationMinutes(booking.slot.startTime, booking.slot.endTime);
+    const duration = slotDurationMinutes(booking.visitStart, booking.visitEnd);
 
     return Response.json({
       booking: {
@@ -35,8 +35,8 @@ export async function GET(
         visitReason: booking.visitReason,
         visitType: booking.visitType,
         notes: booking.notes,
-        startTime: booking.slot.startTime.toISOString(),
-        endTime: booking.slot.endTime.toISOString(),
+        startTime: booking.visitStart.toISOString(),
+        endTime: booking.visitEnd.toISOString(),
         duration,
         therapist: {
           id: booking.therapist.id,
@@ -58,10 +58,10 @@ export async function GET(
               currency: booking.payment.currency,
             }
           : null,
-        refundEligible: booking.status === "CONFIRMED" && canRefundCancel(booking.slot.startTime),
-        canReschedule: booking.status === "CONFIRMED" && canReschedule(booking.slot.startTime),
+        refundEligible: booking.status === "CONFIRMED" && canRefundCancel(booking.visitStart),
+        canReschedule: booking.status === "CONFIRMED" && canReschedule(booking.visitStart),
         cancellationHours: CLINIC.cancellationHours,
-        heldUntil: booking.slot.heldUntil?.toISOString() ?? null,
+        heldUntil: booking.slot?.heldUntil?.toISOString() ?? null,
       },
     });
   } catch (error) {

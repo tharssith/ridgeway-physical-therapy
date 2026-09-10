@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     if (!booking || booking.patientId !== session.id) {
       return jsonError("Booking not found.", 404);
     }
-    if (booking.status !== "PENDING_PAYMENT" || booking.slot.status !== "HELD") {
+    if (booking.status !== "PENDING_PAYMENT" || !booking.slot || booking.slot.status !== "HELD") {
       return jsonError("This booking is no longer awaiting payment.", 409);
     }
     if (!booking.slot.heldUntil || booking.slot.heldUntil < new Date()) {

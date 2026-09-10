@@ -36,7 +36,7 @@ export async function GET() {
         dateOfBirth: p.dateOfBirth ? p.dateOfBirth.toISOString().slice(0, 10) : null,
         memberNumber: p.memberNumber,
         bookingCount: p._count.bookings,
-        lastVisit: p.bookings[0]?.slot.startTime.toISOString() ?? null,
+        lastVisit: p.bookings[0]?.visitStart.toISOString() ?? null,
       })),
     });
   } catch (error) {

@@ -34,6 +34,7 @@ export async function POST(
     if (booking.status !== "CONFIRMED" && booking.status !== "PENDING_PAYMENT") {
       return jsonError("This appointment cannot be cancelled.");
     }
+    if (!booking.slotId || !booking.slot) return jsonError("This appointment cannot be cancelled.");
 
     const refundEligible = canRefundCancel(booking.slot.startTime) || Boolean(refundOverride);
     const shouldRefund =
@@ -47,7 +48,10 @@ export async function POST(
       });
     }
 
+    const slot = booking.slot;
+    const slotId = booking.slotId;
     const updated = await prisma.$transaction(async (tx) => {
+      const stillUpcoming = slot.startTime > new Date();
       const nextBooking = await tx.booking.update({
         where: { id: booking.id },
         data: {
@@ -55,13 +59,14 @@ export async function POST(
           cancelledAt: new Date(),
           cancelledBy: session.id,
           cancelReason: parsed.success ? parsed.data.reason : undefined,
+          slotId: stillUpcoming ? null : slotId,
         },
       });
 
       const nextSlot = await tx.availabilitySlot.update({
-        where: { id: booking.slotId },
+        where: { id: slotId },
         data: {
-          status: booking.slot.startTime > new Date() ? "AVAILABLE" : "CANCELLED",
+          status: stillUpcoming ? "AVAILABLE" : "CANCELLED",
           heldUntil: null,
           heldById: null,
         },

@@ -48,18 +48,17 @@ export default async function ScanPatientPage({
       photoUrl: true,
       memberNumber: true,
       role: true,
-      bookings: {
-        where: {
-          status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
-          slot: { startTime: { gt: new Date() } },
+        bookings: {
+          where: {
+            status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
+            visitStart: { gt: new Date() },
+          },
+          include: {
+            therapist: { include: { user: { select: { name: true } } } },
+          },
+          orderBy: { visitStart: "asc" },
+          take: 1,
         },
-        include: {
-          slot: true,
-          therapist: { include: { user: { select: { name: true } } } },
-        },
-        orderBy: { slot: { startTime: "asc" } },
-        take: 1,
-      },
     },
   });
 
@@ -114,10 +113,10 @@ export default async function ScanPatientPage({
           {nextVisit ? (
             <Card className="mt-3 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
-                {visitDate(nextVisit.slot.startTime)}
+                {visitDate(nextVisit.visitStart)}
               </p>
               <p className="mt-1 font-heading text-2xl font-extrabold">
-                {visitTime(nextVisit.slot.startTime)} – {visitTime(nextVisit.slot.endTime)}
+                {visitTime(nextVisit.visitStart)} – {visitTime(nextVisit.visitEnd)}
               </p>
               <p className="mt-2 text-lg">{nextVisit.therapist.user.name}</p>
               <p className="text-sm text-ink-soft">{clinicAddress()}</p>

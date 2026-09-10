@@ -259,6 +259,8 @@ async function main() {
         patientId: opts.patientId,
         therapistId: opts.therapistId,
         status: opts.status,
+        visitStart: slot.startTime,
+        visitEnd: slot.endTime,
         visitReason: opts.reason,
         visitType: opts.visitType,
         payment: {

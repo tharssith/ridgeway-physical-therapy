@@ -40,6 +40,12 @@ enum VisitType {
   RETURNING
 }
 
+enum Attendance {
+  UNMARKED
+  PRESENT
+  ABSENT
+}
+
 model User {
   id           String    @id @default(cuid())
   name         String
@@ -112,13 +118,16 @@ model AvailabilitySlot {
 
 model Booking {
   id           String            @id @default(cuid())
-  slotId       String            @unique
-  slot         AvailabilitySlot  @relation(fields: [slotId], references: [id])
+  slotId       String?           @unique
+  slot         AvailabilitySlot? @relation(fields: [slotId], references: [id])
   patientId    String
   patient      User              @relation("PatientBookings", fields: [patientId], references: [id])
   therapistId  String
   therapist    Therapist         @relation(fields: [therapistId], references: [id])
   status       BookingStatus     @default(PENDING_PAYMENT)
+  attendance   Attendance        @default(UNMARKED)
+  visitStart   DateTime
+  visitEnd     DateTime
   visitReason  String
   visitType    VisitType
   notes        String?

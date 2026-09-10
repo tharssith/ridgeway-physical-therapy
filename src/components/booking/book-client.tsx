@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { TherapistAvatar } from "@/components/therapist-avatar";
 import { useLiveSlots, type LiveSlot } from "@/hooks/use-live-slots";
 import { useSession } from "@/hooks/use-session";
+import { useNow } from "@/hooks/use-now";
 import { cn } from "@/lib/utils";
 
 type Therapist = {
@@ -59,6 +60,7 @@ export function BookClient() {
   const requestedTherapist = searchParams.get("therapist");
   const requestedTod = searchParams.get("tod");
   const { data: session } = useSession();
+  const now = useNow(1000);
   const [specialty, setSpecialty] = useState<string>(searchParams.get("specialty") || "All");
   const [therapistId, setTherapistId] = useState<string | null>(requestedTherapist);
   const [date, setDate] = useState(requestedDate || format(new Date(), "yyyy-MM-dd"));
@@ -149,7 +151,9 @@ export function BookClient() {
     router.push(`/book/pay/${payload.bookingId}`);
   }
 
-  const grouped = groupSlots(slotsQuery.data ?? []).filter(
+  const grouped = groupSlots(
+    (slotsQuery.data ?? []).filter((slot) => new Date(slot.startTime).getTime() > now),
+  ).filter(
     (group) => !requestedTod || requestedTod === "Any" || group.key === requestedTod,
   );
 

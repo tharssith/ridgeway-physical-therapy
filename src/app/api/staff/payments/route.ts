@@ -34,7 +34,7 @@ export async function GET() {
         createdAt: p.createdAt.toISOString(),
         patientName: p.booking.patient.name,
         therapistName: p.booking.therapist.user.name,
-        startTime: p.booking.slot.startTime.toISOString(),
+        startTime: p.booking.visitStart.toISOString(),
         bookingId: p.bookingId,
         bookingStatus: p.booking.status,
       })),

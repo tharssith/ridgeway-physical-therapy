@@ -14,18 +14,20 @@ export async function GET() {
         therapist: { include: { user: { select: { name: true } } } },
         payment: true,
       },
-      orderBy: { slot: { startTime: "desc" } },
+      orderBy: { visitStart: "desc" },
     });
 
     return Response.json({
-      bookings: bookings.map((booking) => ({
+      bookings: bookings.map((booking) => {
+        const start = booking.visitStart;
+        return {
         id: booking.id,
         status: booking.status,
         visitReason: booking.visitReason,
         visitType: booking.visitType,
         notes: booking.notes,
-        startTime: booking.slot.startTime.toISOString(),
-        endTime: booking.slot.endTime.toISOString(),
+        startTime: start.toISOString(),
+        endTime: booking.visitEnd.toISOString(),
         therapistName: booking.therapist.user.name,
         therapistCredentials: booking.therapist.credentials,
         specialty: booking.therapist.specialty,
@@ -33,10 +35,11 @@ export async function GET() {
         paymentStatus: booking.payment?.status ?? null,
         amount: booking.payment?.amount ?? null,
         canCancel: booking.status === "CONFIRMED",
-        refundEligible: booking.status === "CONFIRMED" && canRefundCancel(booking.slot.startTime),
-        canReschedule: booking.status === "CONFIRMED" && canReschedule(booking.slot.startTime),
+        refundEligible: booking.status === "CONFIRMED" && canRefundCancel(start),
+        canReschedule: booking.status === "CONFIRMED" && canReschedule(start),
         cancellationHours: CLINIC.cancellationHours,
-      })),
+      };
+      }),
     });
   } catch (error) {
     const status = (error as { status?: number }).status ?? 401;

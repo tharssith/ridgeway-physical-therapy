@@ -136,6 +136,8 @@ export async function holdSlot(params: {
         slotId: slot.id,
         patientId: params.patientId,
         therapistId: slot.therapistId,
+        visitStart: slot.startTime,
+        visitEnd: slot.endTime,
         visitReason: params.visitReason,
         visitType: params.visitType,
         notes: params.notes,

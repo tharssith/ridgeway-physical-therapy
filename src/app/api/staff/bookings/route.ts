@@ -22,7 +22,7 @@ export async function GET(request: Request) {
         slot: true,
         payment: true,
       },
-      orderBy: { slot: { startTime: "desc" } },
+      orderBy: { visitStart: "desc" },
       take: 100,
     });
 
@@ -34,12 +34,10 @@ export async function GET(request: Request) {
         patientEmail: booking.patient.email,
         patientPhone: booking.patient.phone,
         therapistName: booking.therapist.user.name,
-        startTime: booking.slot.startTime.toISOString(),
-        endTime: booking.slot.endTime.toISOString(),
+        startTime: booking.visitStart.toISOString(),
+        endTime: booking.visitEnd.toISOString(),
         visitReason: booking.visitReason,
         visitType: booking.visitType,
-        paymentStatus: booking.payment?.status ?? null,
-        amount: booking.payment?.amount ?? null,
       })),
     });
   } catch (error) {
