@@ -61,9 +61,9 @@ export default function StaffSettingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold">Settings</h1>
-        <p className="mt-2 text-muted-foreground">{clinicAddress()}</p>
-        <p className="text-muted-foreground">
+        <h1 className="font-heading text-3xl font-extrabold">Settings</h1>
+        <p className="mt-2 text-ink-soft">{clinicAddress()}</p>
+        <p className="text-ink-soft">
           Holds last {CLINIC.holdMinutes} minutes. Free cancellation {CLINIC.cancellationHours} hours
           before the visit.
         </p>
@@ -83,11 +83,11 @@ export default function StaffSettingsPage() {
             }) => (
               <div key={t.id} className="border-b border-border pb-3 last:border-0">
                 <p className="font-semibold">{t.user.name}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-ink-soft">
                   {t.credentials} · {t.specialty} · {formatUsd(t.rate45)} / 45 min ·{" "}
                   {t.active ? "Active" : "Inactive"}
                 </p>
-                <p className="text-sm text-muted-foreground">{t.user.email}</p>
+                <p className="text-sm text-ink-soft">{t.user.email}</p>
               </div>
             ),
           )}
@@ -97,7 +97,7 @@ export default function StaffSettingsPage() {
             Generate next 4 weeks of openings
           </Button>
         ) : null}
-        {message ? <p className="mt-3 text-sm text-muted-foreground">{message}</p> : null}
+        {message ? <p className="mt-3 text-sm text-ink-soft">{message}</p> : null}
       </Card>
 
       {session?.role === "ADMIN" ? (

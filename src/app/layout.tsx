@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
-import { Source_Sans_3 } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { CLINIC } from "@/lib/clinic";
 import "./globals.css";
 
-const sourceSans = Source_Sans_3({
-  variable: "--font-source-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -21,8 +29,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sourceSans.variable} h-full`}>
-      <body className="min-h-full bg-background font-sans text-foreground antialiased">
+    <html lang="en" className={`${inter.variable} ${jakarta.variable} h-full`}>
+      <body className="min-h-full bg-bg font-sans text-ink antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

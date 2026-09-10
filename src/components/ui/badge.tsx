@@ -8,12 +8,12 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold tracking-wide uppercase",
-        tone === "neutral" && "bg-muted text-muted-foreground",
-        tone === "success" && "bg-[#e8f5ee] text-success",
-        tone === "held" && "bg-[#fff4ed] text-held",
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide",
+        tone === "neutral" && "bg-muted text-ink-soft",
+        tone === "success" && "bg-mint text-mint-ink",
+        tone === "held" && "bg-amber text-amber-ink",
         tone === "danger" && "bg-[#fdecea] text-danger",
-        tone === "primary" && "bg-[#e6f3ef] text-primary",
+        tone === "primary" && "bg-[#E8EEF8] text-primary",
         className,
       )}
       {...props}

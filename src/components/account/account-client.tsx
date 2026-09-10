@@ -76,7 +76,7 @@ export function AccountClient() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Patient</p>
-          <h1 className="mt-1 text-3xl font-semibold">{session?.name ?? "My appointments"}</h1>
+          <h1 className="mt-1 font-heading text-3xl font-extrabold">{session?.name ?? "My appointments"}</h1>
         </div>
         <Button asChild>
           <Link href="/book">Book an appointment</Link>
@@ -87,7 +87,7 @@ export function AccountClient() {
         <h2 className="text-xl font-semibold">Upcoming</h2>
         <div className="mt-4 space-y-3">
           {upcoming.length === 0 ? (
-            <p className="text-muted-foreground">You have no upcoming visits.</p>
+            <p className="text-ink-soft">You have no upcoming visits.</p>
           ) : (
             upcoming.map((booking) => (
               <Card key={booking.id} className="p-5">
@@ -97,7 +97,7 @@ export function AccountClient() {
                     <p className="mt-1 text-lg">
                       {booking.therapistName}, {booking.therapistCredentials}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-ink-soft">
                       {booking.specialty} · {booking.location}
                     </p>
                     <p className="mt-2 text-sm">{booking.visitReason}</p>
@@ -121,7 +121,7 @@ export function AccountClient() {
                         <Link href={`/book?reschedule=${booking.id}`}>Reschedule</Link>
                       </Button>
                     ) : booking.canCancel ? (
-                      <p className="max-w-xs text-sm text-muted-foreground">
+                      <p className="max-w-xs text-sm text-ink-soft">
                         Rescheduling is not available inside {CLINIC.cancellationHours} hours.
                       </p>
                     ) : null}
@@ -145,7 +145,7 @@ export function AccountClient() {
             <Card key={booking.id} className="px-5 py-4">
               <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
                 <p className="text-lg font-semibold">{when(booking.startTime)}</p>
-                <p className="text-muted-foreground">{booking.therapistName}</p>
+                <p className="text-ink-soft">{booking.therapistName}</p>
               </div>
               <p className="mt-1 text-sm">{booking.visitReason}</p>
               <Badge className="mt-2" tone={tone(booking.status)}>

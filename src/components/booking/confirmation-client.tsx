@@ -30,14 +30,14 @@ export function ConfirmationClient({ bookingId }: { bookingId: string }) {
   });
 
   if (isLoading || !data) {
-    return <p className="text-muted-foreground">Loading your confirmation…</p>;
+    return <p className="text-ink-soft">Loading your confirmation…</p>;
   }
 
   if (data.status !== "CONFIRMED") {
     return (
       <Card className="p-8">
         <h1 className="text-2xl font-semibold">Payment still processing</h1>
-        <p className="mt-3 text-muted-foreground">
+        <p className="mt-3 text-ink-soft">
           If you just paid, this page will update when the clinic receives confirmation. Do not book
           the same time again.
         </p>
@@ -58,35 +58,35 @@ export function ConfirmationClient({ bookingId }: { bookingId: string }) {
   return (
     <Card className="p-8">
       <Badge tone="success">Appointment confirmed</Badge>
-      <h1 className="mt-4 text-3xl font-semibold leading-tight">{data.patient.name}</h1>
-      <p className="mt-2 text-2xl font-semibold">{when}</p>
+      <h1 className="mt-4 font-heading text-3xl font-extrabold leading-tight">{data.patient.name}</h1>
+      <p className="mt-2 font-heading text-2xl font-bold">{when}</p>
       <p className="mt-1 text-lg">
         {data.therapist.name}, {data.therapist.credentials} · {data.therapist.specialty}
       </p>
-      <p className="mt-1 text-muted-foreground">
+      <p className="mt-1 text-ink-soft">
         {data.duration}-minute visit · {clinicAddress()}
       </p>
-      <dl className="mt-6 grid gap-3 border-t border-border pt-6 text-sm">
+      <dl className="mt-6 grid gap-3 border-t border-line pt-6 text-sm">
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Reason for visit</dt>
+          <dt className="text-ink-soft">Reason for visit</dt>
           <dd className="text-right font-medium">{data.visitReason}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Visit type</dt>
+          <dt className="text-ink-soft">Visit type</dt>
           <dd className="text-right font-medium">
             {data.visitType === "FIRST_TIME" ? "First visit" : "Returning"}
           </dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Amount paid</dt>
+          <dt className="text-ink-soft">Amount paid</dt>
           <dd className="text-right font-medium">{data.payment?.amountLabel ?? "—"}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Confirmation</dt>
+          <dt className="text-ink-soft">Confirmation</dt>
           <dd className="text-right font-medium">{bookingId.slice(-8).toUpperCase()}</dd>
         </div>
       </dl>
-      <div className="mt-6 border-t border-border pt-6 text-sm text-muted-foreground">
+      <div className="mt-6 border-t border-line pt-6 text-sm text-ink-soft">
         <p>Arrive 10 minutes early. Bring photo ID.</p>
         <p className="mt-2">
           Cancel at least {data.cancellationHours} hours beforehand for a full refund. A written

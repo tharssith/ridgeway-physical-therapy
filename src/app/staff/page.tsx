@@ -65,26 +65,26 @@ export default function StaffHomePage() {
     <div className="space-y-8">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Today</p>
-        <h1 className="text-3xl font-semibold">Clinic schedule</h1>
+        <h1 className="font-heading text-3xl font-extrabold">Clinic schedule</h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="p-5">
-          <p className="text-sm text-muted-foreground">Today’s appointments</p>
+          <p className="text-sm text-ink-soft">Today’s appointments</p>
           <p className="mt-2 text-3xl font-semibold">{overview.data?.today?.length ?? 0}</p>
         </Card>
         <Card className="p-5">
-          <p className="text-sm text-muted-foreground">Next 7 days</p>
+          <p className="text-sm text-ink-soft">Next 7 days</p>
           <p className="mt-2 text-3xl font-semibold">{overview.data?.upcoming?.length ?? 0}</p>
         </Card>
         {session?.role === "ADMIN" ? (
           <Card className="p-5">
-            <p className="text-sm text-muted-foreground">Collected this month</p>
+            <p className="text-sm text-ink-soft">Collected this month</p>
             <p className="mt-2 text-3xl font-semibold">{formatUsd(overview.data?.monthRevenue ?? 0)}</p>
           </Card>
         ) : (
           <Card className="p-5">
-            <p className="text-sm text-muted-foreground">Payments this month</p>
+            <p className="text-sm text-ink-soft">Payments this month</p>
             <p className="mt-2 text-3xl font-semibold">{overview.data?.monthPayments ?? 0}</p>
           </Card>
         )}
@@ -97,7 +97,7 @@ export default function StaffHomePage() {
             <Card key={row.id} className="px-5 py-4">
               <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
                 <p className="text-lg font-semibold">{row.patientName}</p>
-                <p className="text-muted-foreground">{when(row.startTime)}</p>
+                <p className="text-ink-soft">{when(row.startTime)}</p>
               </div>
               <p className="text-sm">
                 {row.therapistName} · {row.visitReason}
@@ -106,7 +106,7 @@ export default function StaffHomePage() {
             </Card>
           ))}
           {!overview.data?.today?.length ? (
-            <p className="text-muted-foreground">No patients on the book for the rest of today.</p>
+            <p className="text-ink-soft">No patients on the book for the rest of today.</p>
           ) : null}
         </div>
       </section>
@@ -123,9 +123,9 @@ export default function StaffHomePage() {
                   <div>
                     <p className="font-semibold">
                       {slot.patientName ?? "Open"}{" "}
-                      <span className="font-normal text-muted-foreground">· {slot.therapistName}</span>
+                      <span className="font-normal text-ink-soft">· {slot.therapistName}</span>
                     </p>
-                    <p className="text-sm text-muted-foreground">{when(slot.startTime)}</p>
+                    <p className="text-sm text-ink-soft">{when(slot.startTime)}</p>
                   </div>
                   <Badge tone={slot.status === "BOOKED" ? "success" : slot.status === "HELD" ? "held" : "neutral"}>
                     {slot.status}
@@ -136,7 +136,7 @@ export default function StaffHomePage() {
         </div>
         <Card className="h-fit p-5">
           <h2 className="text-lg font-semibold">Block time</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-ink-soft">
             Use for holidays, meetings, or breaks. Open slots in the window are taken off the patient schedule.
           </p>
           <form onSubmit={blockTime} className="mt-4 space-y-3">
@@ -155,7 +155,7 @@ export default function StaffHomePage() {
             <Button type="submit" className="w-full">
               Block this time
             </Button>
-            {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+            {message ? <p className="text-sm text-ink-soft">{message}</p> : null}
           </form>
         </Card>
       </section>

@@ -46,8 +46,8 @@ function LoginForm() {
 
   return (
     <Card className="w-full max-w-md p-8">
-      <h1 className="text-2xl font-semibold">Sign in</h1>
-      <p className="mt-2 text-muted-foreground">Use the email on your Ridgeway account.</p>
+      <h1 className="font-heading text-2xl font-extrabold">Sign in</h1>
+      <p className="mt-2 text-ink-soft">Use the email on your Ridgeway account.</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>
@@ -62,7 +62,7 @@ function LoginForm() {
           {pending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
-      <p className="mt-6 text-sm text-muted-foreground">
+      <p className="mt-6 text-sm text-ink-soft">
         New patient?{" "}
         <Link href="/register" className="font-semibold text-primary">
           Create an account

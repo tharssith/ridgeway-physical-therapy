@@ -8,7 +8,7 @@ export default function BookPage() {
     <div className="flex min-h-full flex-col">
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-        <Suspense fallback={<p className="text-muted-foreground">Loading the schedule…</p>}>
+        <Suspense fallback={<p className="text-ink-soft">Loading the schedule…</p>}>
           <BookClient />
         </Suspense>
       </main>

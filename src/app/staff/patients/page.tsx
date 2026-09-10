@@ -15,13 +15,13 @@ export default function StaffPatientsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">Patients</h1>
+      <h1 className="font-heading text-3xl font-extrabold">Patients</h1>
       <div className="space-y-2">
         {(data?.patients ?? []).map(
           (p: { id: string; name: string; email: string; phone: string | null; bookingCount: number; lastVisit: string | null }) => (
             <Card key={p.id} className="px-5 py-4">
               <p className="text-lg font-semibold">{p.name}</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-ink-soft">
                 {p.email}
                 {p.phone ? ` · ${p.phone}` : ""}
               </p>

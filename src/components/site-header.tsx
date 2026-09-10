@@ -19,34 +19,34 @@ export function SiteHeader() {
   const home = user?.role === "PATIENT" ? "/account" : user ? "/staff" : "/";
 
   return (
-    <header className="border-b border-border bg-card">
+    <header className="bg-primary text-white">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href={home} className="flex items-center gap-2.5">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-sm bg-primary text-sm font-bold text-white">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-[10px] bg-white/15 font-heading text-sm font-extrabold">
             R
           </span>
-          <span className="text-[17px] font-semibold tracking-tight">{CLINIC.name}</span>
+          <span className="font-heading text-[17px] font-bold tracking-tight">{CLINIC.name}</span>
         </Link>
         <nav className="flex items-center gap-2 text-[15px] sm:gap-4">
-          <Link href="/book" className="hidden text-muted-foreground hover:text-foreground sm:inline">
+          <Link href="/book" className="hidden text-white/80 hover:text-white sm:inline">
             Book a visit
           </Link>
           {user ? (
             <>
               <Link
                 href={user.role === "PATIENT" ? "/account" : "/staff"}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-white/80 hover:text-white"
               >
                 {user.role === "PATIENT" ? "My appointments" : "Clinic"}
               </Link>
-              <span className="hidden text-foreground sm:inline">{user.name.split(" ")[0]}</span>
-              <Button variant="secondary" size="sm" onClick={logout}>
+              <span className="hidden sm:inline">{user.name.split(" ")[0]}</span>
+              <Button variant="outline" size="sm" onClick={logout}>
                 Sign out
               </Button>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-muted-foreground hover:text-foreground">
+              <Link href="/login" className="text-white/80 hover:text-white">
                 Sign in
               </Link>
               <Button asChild size="sm">

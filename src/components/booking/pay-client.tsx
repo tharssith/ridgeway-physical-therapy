@@ -71,7 +71,7 @@ function CheckoutForm({ bookingId, demo }: { bookingId: string; demo: boolean })
   return (
     <div className="space-y-4">
       {!demo ? <PaymentElement /> : (
-        <p className="border border-border bg-muted px-3 py-3 text-sm text-muted-foreground">
+        <p className="rounded-[12px] border border-amber-line bg-amber px-3 py-3 text-sm text-amber-ink">
           Stripe test keys are not configured. This local checkout will confirm the appointment
           without charging a card. Add <code>STRIPE_SECRET_KEY</code> to enable PaymentIntents.
         </p>
@@ -130,7 +130,7 @@ export function PayClient({ bookingId }: { bookingId: string }) {
     return (
       <Card className="p-8">
         <h1 className="text-2xl font-semibold">This time is no longer available</h1>
-        <p className="mt-3 text-muted-foreground">
+        <p className="mt-3 text-ink-soft">
           {(bookingQuery.error as Error | undefined)?.message ||
             (intentQuery.error as Error | undefined)?.message ||
             "Your hold may have expired. Please choose another appointment."}
@@ -143,7 +143,7 @@ export function PayClient({ bookingId }: { bookingId: string }) {
   }
 
   if (!bookingQuery.data || !intentQuery.data) {
-    return <p className="text-muted-foreground">Preparing checkout…</p>;
+    return <p className="text-ink-soft">Preparing checkout…</p>;
   }
 
   const booking = bookingQuery.data;
@@ -160,17 +160,17 @@ export function PayClient({ bookingId }: { bookingId: string }) {
     <div className="space-y-5">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Step 4 of 5</p>
-        <h1 className="mt-2 text-3xl font-semibold">Payment</h1>
+        <h1 className="mt-2 font-heading text-3xl font-extrabold">Payment</h1>
       </div>
       <Card className="p-6">
         <p className="text-xl font-semibold">
           {booking.therapist.name}, {booking.therapist.credentials}
         </p>
         <p className="mt-1 text-lg">{when}</p>
-        <p className="text-muted-foreground">{booking.duration} minutes · {clinicAddress()}</p>
-        <p className="mt-3 text-sm text-muted-foreground">{booking.visitReason}</p>
+        <p className="text-ink-soft">{booking.duration} minutes · {clinicAddress()}</p>
+        <p className="mt-3 text-sm text-ink-soft">{booking.visitReason}</p>
         <p className="mt-4 text-2xl font-semibold">{booking.payment?.amountLabel}</p>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 rounded-[12px] border border-amber-line bg-amber px-3 py-3 text-sm text-amber-ink">
           This time is held until{" "}
           {intentQuery.data.holdUntil
             ? new Date(intentQuery.data.holdUntil).toLocaleTimeString("en-US", {
@@ -179,9 +179,9 @@ export function PayClient({ bookingId }: { bookingId: string }) {
                 timeZone: CLINIC.timezone,
               })
             : "the hold expires"}
-          . If payment is not finished, the opening returns to the schedule.
+          . Complete payment before it releases.
         </p>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-ink-soft">
           Cancel at least {booking.cancellationHours} hours before the visit for a full refund.
         </p>
       </Card>

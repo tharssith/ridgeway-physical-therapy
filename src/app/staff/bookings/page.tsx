@@ -40,7 +40,7 @@ export default function StaffBookingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-semibold">Bookings</h1>
+      <h1 className="font-heading text-3xl font-extrabold">Bookings</h1>
       <div className="space-y-3">
         {(data?.bookings ?? []).map(
           (row: {
@@ -59,7 +59,7 @@ export default function StaffBookingsPage() {
                 <div>
                   <p className="text-xl font-semibold leading-tight">{row.patientName}</p>
                   <p className="text-lg">{when(row.startTime)}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-ink-soft">
                     {row.therapistName} · {row.patientPhone ?? "No phone on file"}
                   </p>
                   <p className="mt-2 text-sm">{row.visitReason}</p>

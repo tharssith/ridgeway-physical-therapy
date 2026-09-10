@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { format } from "date-fns";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { HomeSearchBar } from "@/components/home-search-bar";
+import { TherapistDirectory } from "@/components/therapist-directory";
 import { CLINIC, clinicAddress } from "@/lib/clinic";
 import { prisma } from "@/lib/prisma";
-import { TherapistAvatar } from "@/components/therapist-avatar";
-import { formatUsd } from "@/lib/clinic";
 
 export default async function HomePage() {
   const therapists = await prisma.therapist.findMany({
@@ -15,78 +16,102 @@ export default async function HomePage() {
     orderBy: { user: { name: "asc" } },
   });
 
+  const zoned = toZonedTime(new Date(), CLINIC.timezone);
+  const dateKey = format(zoned, "yyyy-MM-dd");
+  const dayStart = fromZonedTime(`${dateKey}T00:00:00`, CLINIC.timezone);
+  const dayEnd = fromZonedTime(`${dateKey}T23:59:59`, CLINIC.timezone);
+  const openingsToday = await prisma.availabilitySlot.count({
+    where: {
+      status: "AVAILABLE",
+      startTime: { gte: dayStart, lte: dayEnd },
+    },
+  });
+
   return (
     <div className="flex min-h-full flex-col">
       <SiteHeader />
       <main>
-        <section className="border-b border-border bg-card">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 md:grid-cols-[1.2fr_0.8fr] md:py-20">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
-                Seattle · Westlake
-              </p>
-              <h1 className="mt-3 max-w-xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
-                {CLINIC.tagline}
-              </h1>
-              <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-                See live openings with licensed Doctors of Physical Therapy, hold a time while you
-                complete payment, and receive a written confirmation for your visit.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button asChild size="lg">
-                  <Link href="/book">Find an appointment</Link>
-                </Button>
-                <Button asChild variant="secondary" size="lg">
-                  <Link href="/login">Patient sign in</Link>
-                </Button>
-              </div>
-              <p className="mt-6 text-sm text-muted-foreground">
-                {clinicAddress()} · {CLINIC.phone}
-              </p>
+        <section
+          className="px-4 pb-24 pt-16 text-white md:pt-20"
+          style={{
+            background: "linear-gradient(135deg, #2B4C8C 0%, #3D6BB5 48%, #6B8FCE 100%)",
+          }}
+        >
+          <div className="mx-auto max-w-6xl">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-medium">
+              <span className="h-2 w-2 rounded-full bg-[#7DDAA5]" />
+              {openingsToday} openings today in {CLINIC.city}
+            </p>
+            <h1 className="mt-5 max-w-2xl font-heading text-4xl font-extrabold leading-[1.12] md:text-6xl">
+              {CLINIC.tagline}
+            </h1>
+            <p className="mt-4 max-w-xl text-lg text-white/85">
+              Live openings with licensed DPTs. Hold a time, pay online, and get a written visit
+              confirmation.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
+                <Link href="#therapists">Browse therapists</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link href="#how-it-works">How it works</Link>
+              </Button>
             </div>
-            <Card className="p-6 md:p-8">
-              <h2 className="text-lg font-semibold">Before you book</h2>
-              <ul className="mt-4 space-y-3 text-[15px] text-muted-foreground">
-                <li>Appointments are self-pay. We do not bill insurance in this portal.</li>
-                <li>A time is held for {CLINIC.holdMinutes} minutes once you begin checkout.</li>
-                <li>
-                  Full refund if you cancel at least {CLINIC.cancellationHours} hours before your
-                  visit.
-                </li>
-                <li>Arrive 10 minutes early. Bring photo ID and a list of current medications.</li>
-              </ul>
-            </Card>
+            <p className="mt-6 text-sm text-white/75">
+              {clinicAddress()} · {CLINIC.phone}
+            </p>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-14">
-          <h2 className="text-2xl font-semibold tracking-tight">Our therapists</h2>
-          <p className="mt-2 max-w-2xl text-muted-foreground">
-            Each clinician sets their own session length and rate. Credentials are listed as they
-            appear on Washington state licensure records.
-          </p>
-          <div className="mt-8 grid gap-5 md:grid-cols-2">
-            {therapists.map((therapist) => (
-              <Card key={therapist.id} className="flex gap-4 p-5">
-                <TherapistAvatar name={therapist.user.name} />
-                <div className="min-w-0">
-                  <p className="text-lg font-semibold leading-tight">{therapist.user.name}</p>
-                  <p className="text-sm text-primary">
-                    {therapist.credentials} · {therapist.specialty}
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{therapist.bio}</p>
-                  <p className="mt-3 text-sm">
-                    {formatUsd(therapist.rate30)} / 30 min · {formatUsd(therapist.rate45)} / 45 min ·{" "}
-                    {formatUsd(therapist.rate60)} / 60 min
-                  </p>
-                </div>
-              </Card>
-            ))}
+        <div className="px-4">
+          <HomeSearchBar />
+        </div>
+
+        <section className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 py-14 md:grid-cols-4">
+          <div>
+            <p className="font-heading text-3xl font-extrabold">{therapists.length}</p>
+            <p className="mt-1 text-sm text-ink-soft">Licensed therapists</p>
           </div>
-          <div className="mt-8">
-            <Button asChild>
-              <Link href="/book">View live availability</Link>
-            </Button>
+          <div>
+            <p className="font-heading text-3xl font-extrabold">{CLINIC.holdMinutes} min</p>
+            <p className="mt-1 text-sm text-ink-soft">Average hold time</p>
+          </div>
+          <div>
+            <p className="font-heading text-3xl font-extrabold">{CLINIC.cancellationHours}h</p>
+            <p className="mt-1 text-sm text-ink-soft">Free cancellation window</p>
+          </div>
+          <div>
+            <p className="font-heading text-3xl font-extrabold">4.9</p>
+            <p className="mt-1 text-sm text-ink-soft">Patient rating</p>
+          </div>
+        </section>
+
+        <TherapistDirectory
+          therapists={therapists.map((therapist) => ({
+            id: therapist.id,
+            name: therapist.user.name,
+            specialty: therapist.specialty,
+            credentials: therapist.credentials,
+            photoUrl: therapist.photoUrl,
+            rate45: therapist.rate45,
+          }))}
+        />
+
+        <section id="how-it-works" className="mx-auto max-w-6xl px-4 pb-16">
+          <h2 className="font-heading text-3xl font-extrabold">How it works</h2>
+          <div className="mt-8 grid gap-8 md:grid-cols-4">
+            {[
+              { n: "1", t: "Choose a therapist", d: "Filter by specialty and see credentials, rates, and next openings." },
+              { n: "2", t: "Pick a live time", d: "The grid updates as other patients hold or book the same day." },
+              { n: "3", t: "Hold while you pay", d: `Your time is reserved for ${CLINIC.holdMinutes} minutes during checkout.` },
+              { n: "4", t: "Get confirmation", d: "A written appointment summary is issued after payment succeeds." },
+            ].map((step) => (
+              <div key={step.n}>
+                <p className="font-heading text-sm font-bold text-primary">{step.n}</p>
+                <p className="mt-2 font-heading text-lg font-bold">{step.t}</p>
+                <p className="mt-1 text-sm text-ink-soft">{step.d}</p>
+              </div>
+            ))}
           </div>
         </section>
       </main>

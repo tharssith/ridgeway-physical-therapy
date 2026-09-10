@@ -47,8 +47,8 @@ export default function RegisterPage() {
       <SiteHeader />
       <main className="flex flex-1 items-start justify-center px-4 py-16">
         <Card className="w-full max-w-md p-8">
-          <h1 className="text-2xl font-semibold">Create a patient account</h1>
-          <p className="mt-2 text-muted-foreground">
+          <h1 className="font-heading text-2xl font-extrabold">Create a patient account</h1>
+          <p className="mt-2 text-ink-soft">
             You will use this account to book and manage appointments.
           </p>
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -73,7 +73,7 @@ export default function RegisterPage() {
               {pending ? "Creating account…" : "Continue"}
             </Button>
           </form>
-          <p className="mt-6 text-sm text-muted-foreground">
+          <p className="mt-6 text-sm text-ink-soft">
             Already registered?{" "}
             <Link href="/login" className="font-semibold text-primary">
               Sign in

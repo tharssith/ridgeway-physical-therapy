@@ -26,26 +26,26 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-full bg-background">
-      <header className="border-b border-border bg-card">
+    <div className="min-h-full bg-bg">
+      <header className="bg-primary text-white">
         <div className="flex h-14 items-center justify-between px-4">
-          <Link href="/staff" className="flex items-center gap-2 font-semibold">
-            <span className="inline-flex h-7 w-7 items-center justify-center bg-primary text-xs font-bold text-white">
+          <Link href="/staff" className="flex items-center gap-2 font-heading font-bold">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-[8px] bg-white/15 text-xs font-extrabold">
               R
             </span>
             {CLINIC.shortName}
           </Link>
           <div className="flex items-center gap-3 text-sm">
             <span>{user?.name}</span>
-            <span className="hidden text-muted-foreground sm:inline">{user?.role}</span>
-            <Button size="sm" variant="secondary" onClick={logout}>
+            <span className="hidden text-white/70 sm:inline">{user?.role}</span>
+            <Button size="sm" variant="outline" onClick={logout}>
               Sign out
             </Button>
           </div>
         </div>
       </header>
       <div className="flex">
-        <aside className="hidden w-56 shrink-0 border-r border-border bg-card md:block">
+        <aside className="hidden w-56 shrink-0 border-r border-line bg-card md:block">
           <nav className="flex flex-col p-3">
             {NAV.map((item) => {
               const active = pathname === item.href;
@@ -54,8 +54,8 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "px-3 py-2.5 text-[15px]",
-                    active ? "bg-[#eef7f4] font-semibold text-primary" : "text-foreground",
+                    "rounded-[12px] px-3 py-2.5 text-[15px] font-medium",
+                    active ? "bg-[#E8EEF8] font-semibold text-primary" : "text-ink",
                   )}
                 >
                   {item.label}
@@ -65,14 +65,14 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           </nav>
         </aside>
         <div className="min-w-0 flex-1">
-          <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
+          <nav className="flex gap-1 overflow-x-auto border-b border-line bg-card px-3 py-2 md:hidden">
             {NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "whitespace-nowrap px-3 py-2 text-sm",
-                  pathname === item.href ? "font-semibold text-primary" : "text-muted-foreground",
+                  "whitespace-nowrap rounded-full px-3 py-2 text-sm",
+                  pathname === item.href ? "bg-[#E8EEF8] font-semibold text-primary" : "text-ink-soft",
                 )}
               >
                 {item.label}
