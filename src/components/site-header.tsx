@@ -19,15 +19,18 @@ export function SiteHeader() {
   const home = user?.role === "PATIENT" ? "/account" : user ? "/staff" : "/";
 
   return (
-    <header className="bg-primary text-white">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href={home} className="flex items-center gap-2.5">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-[10px] bg-white/15 font-heading text-sm font-extrabold">
+    <header className="sticky top-0 z-30 w-full bg-primary text-white">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4">
+        <Link href={home} className="flex min-w-0 items-center gap-2.5">
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-white/15 font-heading text-sm font-extrabold">
             R
           </span>
-          <span className="font-heading text-[17px] font-bold tracking-tight">{CLINIC.name}</span>
+          <span className="truncate font-heading text-[17px] font-bold tracking-tight">
+            <span className="sm:hidden">{CLINIC.shortName}</span>
+            <span className="hidden sm:inline">{CLINIC.name}</span>
+          </span>
         </Link>
-        <nav className="flex items-center gap-2 text-[15px] sm:gap-4">
+        <nav className="flex shrink-0 items-center gap-2 text-[15px] sm:gap-4">
           <Link href="/book" className="hidden text-white/80 hover:text-white sm:inline">
             Book a visit
           </Link>
@@ -35,11 +38,11 @@ export function SiteHeader() {
             <>
               <Link
                 href={user.role === "PATIENT" ? "/account" : "/staff"}
-                className="text-white/80 hover:text-white"
+                className="hidden text-white/80 hover:text-white sm:inline"
               >
                 {user.role === "PATIENT" ? "My appointments" : "Clinic"}
               </Link>
-              <span className="hidden sm:inline">{user.name.split(" ")[0]}</span>
+              <span className="hidden md:inline">{user.name.split(" ")[0]}</span>
               <Button variant="outline" size="sm" onClick={logout}>
                 Sign out
               </Button>

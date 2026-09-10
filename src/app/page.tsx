@@ -28,7 +28,7 @@ export default async function HomePage() {
   });
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-full flex-col overflow-x-hidden">
       <SiteHeader />
       <main>
         <section

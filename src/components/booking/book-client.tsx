@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { addDays, format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SPECIALTIES, CLINIC, clinicAddress, slotDurationMinutes, rateForDuration, formatUsd } from "@/lib/clinic";
+import { SPECIALTIES, CLINIC, slotDurationMinutes, rateForDuration, formatUsd } from "@/lib/clinic";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { TherapistAvatar } from "@/components/therapist-avatar";
@@ -154,7 +154,7 @@ export function BookClient() {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       <div className="flex flex-wrap gap-2">
         {["All", ...SPECIALTIES].map((item) => (
           <button
@@ -175,22 +175,23 @@ export function BookClient() {
         ))}
       </div>
 
-      <div className="rounded-[20px] border border-line bg-card p-5 md:p-7">
+      <div className="overflow-hidden rounded-[20px] border border-line bg-card">
         {loadingTherapists ? (
-          <p className="text-ink-soft">Loading the schedule…</p>
+          <p className="p-6 text-ink-soft">Loading the schedule…</p>
         ) : selected ? (
-          <>
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
-              <div className="flex items-center gap-3">
+          <div className="grid min-w-0 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="min-w-0 p-5 md:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
+              <div className="flex min-w-0 items-center gap-3">
                 <TherapistAvatar name={selected.name} square />
-                <div>
+                <div className="min-w-0">
                   <h1 className="font-heading text-2xl font-extrabold leading-tight">{selected.name}</h1>
                   <p className="text-sm text-ink-soft">
-                    {clinicAddress()} · {duration}-minute sessions · {selected.credentials}
+                    {CLINIC.city} · {duration}-minute sessions · {selected.credentials}
                   </p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-mint px-3 py-1 text-sm font-semibold text-mint-ink">
+              <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-mint px-3 py-1 text-sm font-semibold text-mint-ink">
                 <span className="h-2 w-2 rounded-full bg-mint-ink" />
                 Updating live
               </span>
@@ -218,9 +219,8 @@ export function BookClient() {
               ))}
             </div>
 
-            <div className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-              <div>
-                <div className="flex gap-2 overflow-x-auto pb-2">
+            <div className="-mx-1 mt-6 min-w-0 overflow-x-auto pb-2">
+              <div className="flex w-max gap-2 px-1">
                   {dates.map((day) => {
                     const key = format(day, "yyyy-MM-dd");
                     return (
@@ -232,7 +232,7 @@ export function BookClient() {
                           setSlotId(null);
                         }}
                         className={cn(
-                          "min-w-[68px] rounded-full px-3 py-2 text-center",
+                          "w-14 shrink-0 rounded-full px-2 py-2 text-center",
                           date === key ? "bg-primary text-white" : "border border-line bg-card text-ink",
                         )}
                       >
@@ -243,9 +243,10 @@ export function BookClient() {
                       </button>
                     );
                   })}
-                </div>
+              </div>
+            </div>
 
-                <div className="mt-6 space-y-6">
+            <div className="mt-6 space-y-6">
                   {slotsQuery.isLoading ? (
                     <p className="text-ink-soft">Loading times…</p>
                   ) : !grouped.length ? (
@@ -286,10 +287,10 @@ export function BookClient() {
                       </div>
                     ))
                   )}
-                </div>
-              </div>
+            </div>
+            </div>
 
-              <aside className="h-fit rounded-[16px] bg-[#F3F5F9] p-5 lg:sticky lg:top-6">
+              <aside className="border-t border-line bg-[#F3F5F9] p-5 lg:border-l lg:border-t-0">
                 <p className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-soft">
                   Visit summary
                 </p>
@@ -370,9 +371,8 @@ export function BookClient() {
                 </p>
               </aside>
             </div>
-          </>
         ) : (
-          <p className="text-ink-soft">No therapists match that specialty.</p>
+          <p className="p-6 text-ink-soft">No therapists match that specialty.</p>
         )}
       </div>
     </div>
