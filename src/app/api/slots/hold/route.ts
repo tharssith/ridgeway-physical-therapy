@@ -5,7 +5,7 @@ import { jsonError } from "@/lib/utils";
 
 const schema = z.object({
   slotId: z.string().min(1),
-  visitReason: z.string().min(8).max(500),
+  visitReason: z.string().max(500).optional().default(""),
   visitType: z.enum(["FIRST_TIME", "RETURNING"]),
   notes: z.string().max(500).optional(),
 });
@@ -18,13 +18,13 @@ export async function POST(request: Request) {
     }
     const parsed = schema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) {
-      return jsonError("Please describe the reason for your visit (at least 8 characters).");
+      return jsonError("Choose a time and visit type to continue.");
     }
 
     const result = await holdSlot({
       slotId: parsed.data.slotId,
       patientId: session.id,
-      visitReason: parsed.data.visitReason,
+      visitReason: parsed.data.visitReason.trim(),
       visitType: parsed.data.visitType,
       notes: parsed.data.notes,
     });

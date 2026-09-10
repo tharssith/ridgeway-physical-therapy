@@ -135,7 +135,7 @@ export function BookClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         slotId: selectedSlot.id,
-        visitReason,
+        visitReason: visitReason.trim(),
         visitType,
       }),
     });
@@ -336,11 +336,10 @@ export function BookClient() {
                     </select>
                   </div>
                   <div>
-                    <Label htmlFor="reason">Reason for visit</Label>
+                    <Label htmlFor="reason">Reason for visit (optional)</Label>
                     <textarea
                       id="reason"
-                      required
-                      minLength={8}
+                      maxLength={500}
                       value={visitReason}
                       onChange={(e) => setVisitReason(e.target.value)}
                       className="min-h-24 w-full rounded-[12px] border border-line bg-card px-3 py-2 text-[16px]"
@@ -356,7 +355,7 @@ export function BookClient() {
                 {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
                 <Button
                   onClick={holdAndPay}
-                  disabled={!selectedSlot || pending || (!rescheduleId && visitReason.trim().length < 8)}
+                  disabled={!selectedSlot || pending}
                   className="mt-4 w-full"
                 >
                   {pending

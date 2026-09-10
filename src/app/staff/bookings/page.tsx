@@ -62,7 +62,7 @@ export default function StaffBookingsPage() {
                   <p className="text-sm text-ink-soft">
                     {row.therapistName} · {row.patientPhone ?? "No phone on file"}
                   </p>
-                  <p className="mt-2 text-sm">{row.visitReason}</p>
+                  {row.visitReason ? <p className="mt-2 text-sm">{row.visitReason}</p> : null}
                   <div className="mt-2 flex gap-2">
                     <Badge>{row.status}</Badge>
                     {row.paymentStatus ? (

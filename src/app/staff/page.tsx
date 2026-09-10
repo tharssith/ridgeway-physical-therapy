@@ -100,7 +100,7 @@ export default function StaffHomePage() {
                 <p className="text-ink-soft">{when(row.startTime)}</p>
               </div>
               <p className="text-sm">
-                {row.therapistName} · {row.visitReason}
+                {row.visitReason ? `${row.therapistName} · ${row.visitReason}` : row.therapistName}
               </p>
               {row.paymentStatus ? <Badge className="mt-2">{row.paymentStatus}</Badge> : null}
             </Card>

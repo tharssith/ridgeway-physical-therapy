@@ -168,7 +168,9 @@ export function PayClient({ bookingId }: { bookingId: string }) {
         </p>
         <p className="mt-1 text-lg">{when}</p>
         <p className="text-ink-soft">{booking.duration} minutes · {clinicAddress()}</p>
-        <p className="mt-3 text-sm text-ink-soft">{booking.visitReason}</p>
+        {booking.visitReason ? (
+          <p className="mt-3 text-sm text-ink-soft">{booking.visitReason}</p>
+        ) : null}
         <p className="mt-4 text-2xl font-semibold">{booking.payment?.amountLabel}</p>
         <p className="mt-2 rounded-[12px] border border-amber-line bg-amber px-3 py-3 text-sm text-amber-ink">
           This time is held until{" "}

@@ -69,7 +69,7 @@ export function ConfirmationClient({ bookingId }: { bookingId: string }) {
       <dl className="mt-6 grid gap-3 border-t border-line pt-6 text-sm">
         <div className="flex justify-between gap-4">
           <dt className="text-ink-soft">Reason for visit</dt>
-          <dd className="text-right font-medium">{data.visitReason}</dd>
+          <dd className="text-right font-medium">{data.visitReason || "—"}</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-ink-soft">Visit type</dt>

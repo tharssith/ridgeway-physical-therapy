@@ -100,7 +100,9 @@ export function AccountClient() {
                     <p className="text-sm text-ink-soft">
                       {booking.specialty} · {booking.location}
                     </p>
-                    <p className="mt-2 text-sm">{booking.visitReason}</p>
+                    {booking.visitReason ? (
+                      <p className="mt-2 text-sm">{booking.visitReason}</p>
+                    ) : null}
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Badge tone={tone(booking.status)}>{booking.status.replace("_", " ")}</Badge>
                       {booking.amount != null ? (
@@ -147,7 +149,7 @@ export function AccountClient() {
                 <p className="text-lg font-semibold">{when(booking.startTime)}</p>
                 <p className="text-ink-soft">{booking.therapistName}</p>
               </div>
-              <p className="mt-1 text-sm">{booking.visitReason}</p>
+              {booking.visitReason ? <p className="mt-1 text-sm">{booking.visitReason}</p> : null}
               <Badge className="mt-2" tone={tone(booking.status)}>
                 {booking.status.replace("_", " ")}
               </Badge>
