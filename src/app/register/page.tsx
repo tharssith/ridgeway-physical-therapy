@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhotoCapture } from "@/components/account/photo-capture";
+import { safeInternalPath } from "@/lib/safe-next";
 
 function RegisterForm() {
   const router = useRouter();
@@ -49,7 +50,7 @@ function RegisterForm() {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: ["session"] });
-    router.push(params.get("next") || "/account");
+    router.push(safeInternalPath(params.get("next")) || "/account");
   }
 
   const next = params.get("next");

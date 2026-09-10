@@ -148,7 +148,7 @@ export function BookClient() {
       setSlotId(null);
       return;
     }
-    router.push(`/book/pay/${payload.bookingId}`);
+    window.location.assign(`/book/pay/${payload.bookingId}`);
   }
 
   const grouped = groupSlots(

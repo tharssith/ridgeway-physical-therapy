@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQueryClient } from "@tanstack/react-query";
 import { Suspense } from "react";
+import { safeInternalPath } from "@/lib/safe-next";
 
 function LoginForm() {
   const router = useRouter();
@@ -39,7 +40,7 @@ function LoginForm() {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: ["session"] });
-    const next = params.get("next");
+    const next = safeInternalPath(params.get("next"));
     const role = data.user.role as string;
     router.push(next || (role === "PATIENT" ? "/account" : "/staff"));
   }

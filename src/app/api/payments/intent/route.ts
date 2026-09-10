@@ -56,10 +56,10 @@ export async function POST(request: Request) {
       const intent = await stripe.paymentIntents.create({
         amount: booking.payment.amount,
         currency: booking.payment.currency,
-        automatic_payment_methods: { enabled: true },
+        automatic_payment_methods: { enabled: true, allow_redirects: "never" },
         metadata: {
           bookingId: booking.id,
-          slotId: booking.slotId,
+          slotId: booking.slotId ?? booking.slot.id,
           patientId: booking.patientId,
         },
       });

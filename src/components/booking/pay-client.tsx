@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CLINIC, clinicAddress } from "@/lib/clinic";
+
+const StripeCheckout = dynamic(
+  () => import("./stripe-checkout").then((module) => module.StripeCheckout),
+  {
+    ssr: false,
+    loading: () => <p className="text-ink-soft">Loading payment form…</p>,
+  },
+);
 
 type BookingPayload = {
   booking: {
@@ -24,58 +31,33 @@ type BookingPayload = {
   };
 };
 
-function CheckoutForm({ bookingId, demo }: { bookingId: string; demo: boolean }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const router = useRouter();
+function DemoCheckout({ bookingId }: { bookingId: string }) {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
   async function confirm() {
     setPending(true);
     setError("");
-    if (demo) {
-      const res = await fetch("/api/payments/demo-confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId }),
-      });
-      const data = await res.json();
-      setPending(false);
-      if (!res.ok) {
-        setError(data.error ?? "Payment could not be completed.");
-        return;
-      }
-      router.push(`/book/confirmation/${bookingId}`);
-      return;
-    }
-    if (!stripe || !elements) {
-      setPending(false);
-      return;
-    }
-    const result = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/book/confirmation/${bookingId}`,
-      },
-      redirect: "if_required",
+    const res = await fetch("/api/payments/demo-confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bookingId }),
     });
+    const data = await res.json();
     setPending(false);
-    if (result.error) {
-      setError(result.error.message ?? "Payment was not completed.");
+    if (!res.ok) {
+      setError(data.error ?? "Payment could not be completed.");
       return;
     }
-    router.push(`/book/confirmation/${bookingId}`);
+    window.location.assign(`/book/confirmation/${bookingId}`);
   }
 
   return (
     <div className="space-y-4">
-      {!demo ? <PaymentElement /> : (
-        <p className="rounded-[12px] border border-amber-line bg-amber px-3 py-3 text-sm text-amber-ink">
-          Stripe test keys are not configured. This local checkout will confirm the appointment
-          without charging a card. Add <code>STRIPE_SECRET_KEY</code> to enable PaymentIntents.
-        </p>
-      )}
+      <p className="rounded-[12px] border border-amber-line bg-amber px-3 py-3 text-sm text-amber-ink">
+        Stripe test keys are not configured. This checkout will confirm the appointment without
+        charging a card. Add <code>STRIPE_SECRET_KEY</code> to enable card payments.
+      </p>
       {error ? <p className="text-sm text-danger">{error}</p> : null}
       <Button onClick={confirm} disabled={pending} className="w-full">
         {pending ? "Processing…" : "Pay now"}
@@ -115,16 +97,11 @@ export function PayClient({ bookingId }: { bookingId: string }) {
     },
   });
 
-  const stripePromise = useMemo(() => {
-    if (!intentQuery.data?.publishableKey) return null;
-    return loadStripe(intentQuery.data.publishableKey);
-  }, [intentQuery.data?.publishableKey]);
-
   useEffect(() => {
     if (bookingQuery.data?.status === "CONFIRMED") {
-      router.replace(`/book/confirmation/${bookingId}`);
+      window.location.replace(`/book/confirmation/${bookingId}`);
     }
-  }, [bookingQuery.data?.status, bookingId, router]);
+  }, [bookingQuery.data?.status, bookingId]);
 
   if (bookingQuery.isError || intentQuery.isError) {
     return (
@@ -147,6 +124,7 @@ export function PayClient({ bookingId }: { bookingId: string }) {
   }
 
   const booking = bookingQuery.data;
+  const intent = intentQuery.data;
   const when = new Date(booking.startTime).toLocaleString("en-US", {
     weekday: "long",
     month: "long",
@@ -155,6 +133,7 @@ export function PayClient({ bookingId }: { bookingId: string }) {
     minute: "2-digit",
     timeZone: CLINIC.timezone,
   });
+  const useStripeCheckout = !intent.demo && Boolean(intent.publishableKey && intent.clientSecret);
 
   return (
     <div className="space-y-5">
@@ -167,15 +146,17 @@ export function PayClient({ bookingId }: { bookingId: string }) {
           {booking.therapist.name}, {booking.therapist.credentials}
         </p>
         <p className="mt-1 text-lg">{when}</p>
-        <p className="text-ink-soft">{booking.duration} minutes · {clinicAddress()}</p>
+        <p className="text-ink-soft">
+          {booking.duration} minutes · {clinicAddress()}
+        </p>
         {booking.visitReason ? (
           <p className="mt-3 text-sm text-ink-soft">{booking.visitReason}</p>
         ) : null}
         <p className="mt-4 text-2xl font-semibold">{booking.payment?.amountLabel}</p>
         <p className="mt-2 rounded-[12px] border border-amber-line bg-amber px-3 py-3 text-sm text-amber-ink">
           This time is held until{" "}
-          {intentQuery.data.holdUntil
-            ? new Date(intentQuery.data.holdUntil).toLocaleTimeString("en-US", {
+          {intent.holdUntil
+            ? new Date(intent.holdUntil).toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "2-digit",
                 timeZone: CLINIC.timezone,
@@ -188,15 +169,14 @@ export function PayClient({ bookingId }: { bookingId: string }) {
         </p>
       </Card>
       <Card className="p-6">
-        {intentQuery.data.demo || !stripePromise || !intentQuery.data.clientSecret ? (
-          <CheckoutForm bookingId={bookingId} demo />
+        {useStripeCheckout ? (
+          <StripeCheckout
+            bookingId={bookingId}
+            publishableKey={intent.publishableKey}
+            clientSecret={intent.clientSecret!}
+          />
         ) : (
-          <Elements
-            stripe={stripePromise}
-            options={{ clientSecret: intentQuery.data.clientSecret, appearance: { theme: "stripe" } }}
-          >
-            <CheckoutForm bookingId={bookingId} demo={false} />
-          </Elements>
+          <DemoCheckout bookingId={bookingId} />
         )}
       </Card>
     </div>
