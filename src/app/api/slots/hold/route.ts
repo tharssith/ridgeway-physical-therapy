@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { holdSlot } from "@/lib/holds";
 import { jsonError } from "@/lib/utils";
-import { upsertGuestPatient } from "@/lib/guest";
+import { upsertGuestPatient, findPatientByNameAndPhone } from "@/lib/guest";
 import { assertPhotoDataUrl } from "@/lib/patient";
 
 const schema = z.object({
@@ -36,6 +36,9 @@ export async function POST(request: Request) {
       return jsonError("Enter a valid email, or leave it blank.");
     }
 
+    const match = await findPatientByNameAndPhone(parsed.data.guest.name, parsed.data.guest.phone);
+    const visitType = match ? "RETURNING" : "FIRST_TIME";
+
     const guest = await upsertGuestPatient({
       name: parsed.data.guest.name,
       phone: parsed.data.guest.phone,
@@ -48,7 +51,7 @@ export async function POST(request: Request) {
       slotId: parsed.data.slotId,
       patientId: guest.id,
       visitReason: parsed.data.visitReason.trim(),
-      visitType: parsed.data.visitType,
+      visitType,
       notes: parsed.data.notes,
     });
 

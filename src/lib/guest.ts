@@ -1,10 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { assertPhotoDataUrl, createMemberNumber } from "@/lib/patient";
 
-export function normalizePhone(value: string) {
+export function normalizeName(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+export function phoneDigitsOrNull(value: string) {
   const digits = value.replace(/\D/g, "");
   const national = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
-  if (national.length !== 10) {
+  return national.length === 10 ? national : null;
+}
+
+export function normalizePhone(value: string) {
+  const national = phoneDigitsOrNull(value);
+  if (!national) {
     throw Object.assign(new Error("Enter a 10-digit US phone number."), { status: 400 });
   }
   return national;
@@ -15,6 +24,30 @@ export function formatPhone(digits: string | null | undefined) {
   const value = digits.replace(/\D/g, "");
   if (value.length !== 10) return digits;
   return `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
+}
+
+export type MatchedPatient = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  photoUrl: string | null;
+};
+
+export async function findPatientByNameAndPhone(name: string, phone: string) {
+  const digits = phoneDigitsOrNull(phone);
+  const wantName = normalizeName(name);
+  if (!digits || wantName.length < 2) return null;
+
+  const rows = await prisma.$queryRaw<MatchedPatient[]>`
+    SELECT id, name, email, phone, address, "photoUrl"
+    FROM "User"
+    WHERE role = 'PATIENT'
+      AND RIGHT(regexp_replace(COALESCE(phone, ''), '[^0-9]', '', 'g'), 10) = ${digits}
+  `;
+
+  return rows.find((row) => normalizeName(row.name) === wantName) ?? null;
 }
 
 export async function upsertGuestPatient(details: {
@@ -37,15 +70,7 @@ export async function upsertGuestPatient(details: {
     throw Object.assign(new Error("Enter a street address."), { status: 400 });
   }
 
-  const existing =
-    (await prisma.user.findFirst({
-      where: { role: "PATIENT", phone },
-    })) ||
-    (email
-      ? await prisma.user.findFirst({
-          where: { role: "PATIENT", email },
-        })
-      : null);
+  const existing = await findPatientByNameAndPhone(name, phone);
 
   if (existing) {
     return prisma.user.update({

@@ -72,6 +72,9 @@ export function BookClient() {
   const [guestEmail, setGuestEmail] = useState("");
   const [guestAddress, setGuestAddress] = useState("");
   const [guestPhoto, setGuestPhoto] = useState("");
+  const [verified, setVerified] = useState<"FIRST_TIME" | "RETURNING" | null>(null);
+  const [verifyMessage, setVerifyMessage] = useState("");
+  const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -133,6 +136,10 @@ export function BookClient() {
         setError("Add a photo for the visit ticket.");
         return;
       }
+      if (!verified) {
+        setError("Verify the name and phone number first.");
+        return;
+      }
     }
     setPending(true);
     setError("");
@@ -157,7 +164,7 @@ export function BookClient() {
       body: JSON.stringify({
         slotId: selectedSlot.id,
         visitReason: visitReason.trim(),
-        visitType,
+        visitType: verified ?? visitType,
         guest: {
           name: guestName.trim(),
           phone: guestPhone.trim(),
@@ -177,6 +184,53 @@ export function BookClient() {
     window.location.assign(`/book/pay/${payload.bookingId}`);
   }
 
+  async function verifyPatient() {
+    if (guestName.trim().length < 2) {
+      setError("Enter the patient’s full name.");
+      return;
+    }
+    if (guestPhone.replace(/\D/g, "").length < 10) {
+      setError("Enter a 10-digit phone number.");
+      return;
+    }
+    setVerifying(true);
+    setError("");
+    setVerifyMessage("");
+    const res = await fetch("/api/patients/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: guestName.trim(), phone: guestPhone.trim() }),
+    });
+    const payload = await res.json();
+    setVerifying(false);
+    if (!res.ok) {
+      setError(payload.error ?? "Unable to verify that name and phone.");
+      setVerified(null);
+      return;
+    }
+    const nextType = payload.visitType === "RETURNING" ? "RETURNING" : "FIRST_TIME";
+    setVerified(nextType);
+    setVisitType(nextType);
+    setVerifyMessage(payload.message ?? "");
+    if (payload.match && payload.patient) {
+      if (payload.patient.email) setGuestEmail(payload.patient.email);
+      if (payload.patient.address) setGuestAddress(payload.patient.address);
+      if (payload.patient.photoUrl) setGuestPhoto(payload.patient.photoUrl);
+    }
+  }
+
+  function onNameChange(value: string) {
+    setGuestName(value);
+    setVerified(null);
+    setVerifyMessage("");
+  }
+
+  function onPhoneChange(value: string) {
+    setGuestPhone(value);
+    setVerified(null);
+    setVerifyMessage("");
+  }
+
   const grouped = groupSlots(
     (slotsQuery.data ?? []).filter((slot) => new Date(slot.startTime).getTime() > now),
   ).filter(
@@ -187,7 +241,8 @@ export function BookClient() {
     guestName.trim().length >= 2 &&
       guestPhone.replace(/\D/g, "").length >= 10 &&
       guestAddress.trim().length >= 8 &&
-      guestPhoto,
+      guestPhoto &&
+      verified,
   );
 
   return (
@@ -366,7 +421,7 @@ export function BookClient() {
                     <Input
                       id="guestName"
                       value={guestName}
-                      onChange={(e) => setGuestName(e.target.value)}
+                      onChange={(e) => onNameChange(e.target.value)}
                       autoComplete="name"
                       required
                     />
@@ -377,11 +432,36 @@ export function BookClient() {
                       id="guestPhone"
                       type="tel"
                       value={guestPhone}
-                      onChange={(e) => setGuestPhone(e.target.value)}
+                      onChange={(e) => onPhoneChange(e.target.value)}
                       autoComplete="tel"
                       required
                     />
                   </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={verifyPatient}
+                    disabled={verifying || guestName.trim().length < 2 || guestPhone.replace(/\D/g, "").length < 10}
+                    className="w-full"
+                  >
+                    {verifying ? "Checking…" : "Verify"}
+                  </Button>
+                  {verified ? (
+                    <p
+                      className={
+                        verified === "RETURNING"
+                          ? "rounded-[12px] border border-mint-line bg-mint px-3 py-3 text-sm font-semibold text-mint-ink"
+                          : "rounded-[12px] border border-line bg-card px-3 py-3 text-sm font-semibold"
+                      }
+                    >
+                      {verified === "RETURNING" ? "Returning patient" : "First visit"}
+                      {verifyMessage ? <span className="mt-1 block font-normal">{verifyMessage}</span> : null}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-ink-soft">
+                      Verify name and phone so we can match this person to the clinic record.
+                    </p>
+                  )}
                   <div>
                     <Label htmlFor="guestEmail">Email (optional)</Label>
                     <Input
@@ -405,14 +485,13 @@ export function BookClient() {
                   <PhotoCapture name={guestName} value={guestPhoto} onChange={setGuestPhoto} required />
                   <div>
                     <Label>Visit type</Label>
-                    <select
-                      className="h-11 w-full rounded-[12px] border border-line bg-card px-3 text-[16px]"
-                      value={visitType}
-                      onChange={(e) => setVisitType(e.target.value as "FIRST_TIME" | "RETURNING")}
-                    >
-                      <option value="FIRST_TIME">First visit</option>
-                      <option value="RETURNING">Returning patient</option>
-                    </select>
+                    <p className="mt-2 rounded-[12px] border border-line bg-card px-3 py-2.5 text-[16px] font-semibold">
+                      {verified === "RETURNING"
+                        ? "Returning patient"
+                        : verified === "FIRST_TIME"
+                          ? "First visit"
+                          : "Verify name and phone to set this"}
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="reason">Reason for visit (optional)</Label>
