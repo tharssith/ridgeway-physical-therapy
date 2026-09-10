@@ -21,7 +21,7 @@ export default function StaffPatientsPage() {
           (p: {
             id: string;
             name: string;
-            email: string;
+            email: string | null;
             phone: string | null;
             dateOfBirth: string | null;
             memberNumber: string;
@@ -34,7 +34,7 @@ export default function StaffPatientsPage() {
                 {p.memberNumber}
                 {p.phone ? ` · ${p.phone}` : ""}
               </p>
-              <p className="text-sm text-ink-soft">{p.email}</p>
+              <p className="text-sm text-ink-soft">{p.email || "No email"}</p>
               <p className="mt-1 text-sm">
                 {p.bookingCount} visit{p.bookingCount === 1 ? "" : "s"}
                 {p.lastVisit

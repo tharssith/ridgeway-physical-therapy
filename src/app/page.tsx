@@ -45,8 +45,8 @@ export default async function HomePage() {
               {CLINIC.tagline}
             </h1>
             <p className="mt-4 max-w-xl text-lg text-white/85">
-              Live openings with licensed DPTs. Hold a time, pay online, and get a written visit
-              confirmation.
+              Live openings with licensed DPTs. Choose a time, add your details, pay, and keep the
+              visit ticket on your phone.
             </p>
             <HomeCheckIn />
             <p className="mt-6 text-sm text-white/75">
@@ -93,10 +93,10 @@ export default async function HomePage() {
           <h2 className="font-heading text-3xl font-extrabold">How it works</h2>
           <div className="mt-8 grid gap-8 md:grid-cols-4">
             {[
-              { n: "1", t: "Check in", d: "Sign in or create your patient card with your name, photo, date of birth, and phone." },
-              { n: "2", t: "Choose a therapist", d: "Filter by specialty and see credentials, rates, and next openings." },
-              { n: "3", t: "Pick a live time", d: "The grid updates as other patients hold or book the same day." },
-              { n: "4", t: "Hold while you pay", d: `Your time is reserved for ${CLINIC.holdMinutes} minutes during checkout.` },
+              { n: "1", t: "Choose a time", d: "Filter by specialty and pick a live opening with a licensed DPT." },
+              { n: "2", t: "Add your details", d: "Name, phone, address, and a photo. Email is optional." },
+              { n: "3", t: "Pay to confirm", d: `Your time is held for ${CLINIC.holdMinutes} minutes while you check out.` },
+              { n: "4", t: "Keep your ticket", d: "Show the QR at the front desk. If it will not scan, staff can enter your unique code." },
             ].map((step) => (
               <div key={step.n}>
                 <p className="font-heading text-sm font-bold text-primary">{step.n}</p>

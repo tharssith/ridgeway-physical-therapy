@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { addDays, addMinutes, format, setHours, setMinutes } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { createMemberNumber } from "../src/lib/patient";
+import { createTicketCode } from "../src/lib/ticket";
 
 const prisma = new PrismaClient();
 const TZ = process.env.CLINIC_TZ ?? "America/Los_Angeles";
@@ -263,6 +264,7 @@ async function main() {
         visitEnd: slot.endTime,
         visitReason: opts.reason,
         visitType: opts.visitType,
+        ticketCode: createTicketCode(),
         payment: {
           create: {
             amount: opts.amount,

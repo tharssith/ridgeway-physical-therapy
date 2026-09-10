@@ -29,7 +29,7 @@ export function QrScanner({ onScan }: { onScan: (text: string) => void }) {
       )
       .then(() => setRunning(true))
       .catch(() => {
-        setError("Allow camera access to scan a patient card, or upload a photo of the QR code.");
+        setError("Allow camera access to scan a visit ticket, or upload a photo of the QR code.");
       });
 
     return () => {

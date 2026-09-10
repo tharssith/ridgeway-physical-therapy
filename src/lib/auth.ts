@@ -10,7 +10,7 @@ const COOKIE = "ridgeway_session";
 export type SessionUser = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   role: Role;
   phone: string | null;
   dateOfBirth: string | null;
@@ -55,11 +55,11 @@ export async function signSession(user: SessionUser) {
 export async function verifySessionToken(token: string): Promise<SessionUser | null> {
   try {
     const { payload } = await jwtVerify(token, secret());
-    if (!payload.sub || !payload.role || !payload.email || !payload.name) return null;
+    if (!payload.sub || !payload.role || !payload.name) return null;
     return {
       id: payload.sub,
       name: String(payload.name),
-      email: String(payload.email),
+      email: payload.email ? String(payload.email) : null,
       role: payload.role as Role,
       phone: null,
       dateOfBirth: null,

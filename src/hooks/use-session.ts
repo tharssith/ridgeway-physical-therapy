@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 export type Session = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   role: "PATIENT" | "THERAPIST" | "ADMIN";
   phone: string | null;
   dateOfBirth: string | null;

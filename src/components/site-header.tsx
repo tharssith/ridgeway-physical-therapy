@@ -16,12 +16,12 @@ export function SiteHeader() {
     router.refresh();
   }
 
-  const home = user?.role === "PATIENT" ? "/account" : user ? "/staff" : "/";
+  const staff = user?.role === "ADMIN" || user?.role === "THERAPIST";
 
   return (
     <header className="sticky top-0 z-30 w-full bg-primary text-white">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4">
-        <Link href={home} className="flex min-w-0 items-center gap-2.5">
+        <Link href={staff ? "/staff" : "/"} className="flex min-w-0 items-center gap-2.5">
           <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-white/15 font-heading text-sm font-extrabold">
             R
           </span>
@@ -34,15 +34,12 @@ export function SiteHeader() {
           <Link href="/book" className="hidden text-white/80 hover:text-white sm:inline">
             Book a visit
           </Link>
-          {user ? (
+          {staff ? (
             <>
-              <Link
-                href={user.role === "PATIENT" ? "/account" : "/staff"}
-                className="hidden text-white/80 hover:text-white sm:inline"
-              >
-                {user.role === "PATIENT" ? "My card" : "Clinic"}
+              <Link href="/staff" className="hidden text-white/80 hover:text-white sm:inline">
+                Clinic
               </Link>
-              <span className="hidden md:inline">{user.name.split(" ")[0]}</span>
+              <span className="hidden md:inline">{user?.name.split(" ")[0]}</span>
               <Button variant="outline" size="sm" onClick={logout}>
                 Sign out
               </Button>
@@ -50,10 +47,10 @@ export function SiteHeader() {
           ) : (
             <>
               <Link href="/login" className="text-white/80 hover:text-white">
-                Sign in
+                Staff
               </Link>
               <Button asChild size="sm">
-                <Link href="/login?next=/book">Book now</Link>
+                <Link href="/book">Book now</Link>
               </Button>
             </>
           )}

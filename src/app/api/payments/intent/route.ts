@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
 import { jsonError } from "@/lib/utils";
 import { getStripe, hasStripe, stripePublishableKey } from "@/lib/stripe";
 import { CLINIC } from "@/lib/clinic";
@@ -11,7 +10,6 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await requireSession();
     const parsed = schema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return jsonError("Missing booking.");
 
@@ -19,9 +17,7 @@ export async function POST(request: Request) {
       where: { id: parsed.data.bookingId },
       include: { slot: true, payment: true, therapist: { include: { user: true } } },
     });
-    if (!booking || booking.patientId !== session.id) {
-      return jsonError("Booking not found.", 404);
-    }
+    if (!booking) return jsonError("Booking not found.", 404);
     if (booking.status !== "PENDING_PAYMENT" || !booking.slot || booking.slot.status !== "HELD") {
       return jsonError("This booking is no longer awaiting payment.", 409);
     }
@@ -38,6 +34,7 @@ export async function POST(request: Request) {
         amount: booking.payment.amount,
         holdUntil: booking.slot.heldUntil.toISOString(),
         holdMinutes: CLINIC.holdMinutes,
+        ticketCode: booking.ticketCode,
       });
     }
 
@@ -59,6 +56,7 @@ export async function POST(request: Request) {
         automatic_payment_methods: { enabled: true, allow_redirects: "never" },
         metadata: {
           bookingId: booking.id,
+          ticketCode: booking.ticketCode,
           slotId: booking.slotId ?? booking.slot.id,
           patientId: booking.patientId,
         },
@@ -78,6 +76,7 @@ export async function POST(request: Request) {
       amount: booking.payment.amount,
       holdUntil: booking.slot.heldUntil.toISOString(),
       holdMinutes: CLINIC.holdMinutes,
+      ticketCode: booking.ticketCode,
     });
   } catch (error) {
     const status = (error as { status?: number }).status ?? 400;

@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -41,14 +40,13 @@ function LoginForm() {
     }
     await queryClient.invalidateQueries({ queryKey: ["session"] });
     const next = safeInternalPath(params.get("next"));
-    const role = data.user.role as string;
-    router.push(next || (role === "PATIENT" ? "/account" : "/staff"));
+    router.push(next && next.startsWith("/staff") ? next : "/staff");
   }
 
   return (
     <Card className="w-full max-w-md p-8">
-      <h1 className="font-heading text-2xl font-extrabold">Check in</h1>
-      <p className="mt-2 text-ink-soft">Sign in to open your patient card and upcoming visits.</p>
+      <h1 className="font-heading text-2xl font-extrabold">Staff sign in</h1>
+      <p className="mt-2 text-ink-soft">Clinic team only. Patients book a visit without an account.</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>
@@ -63,15 +61,6 @@ function LoginForm() {
           {pending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
-      <p className="mt-6 text-sm text-ink-soft">
-        New patient?{" "}
-        <Link
-          href={params.get("next") ? `/register?next=${encodeURIComponent(params.get("next")!)}` : "/register"}
-          className="font-semibold text-primary"
-        >
-          Create your patient card
-        </Link>
-      </p>
     </Card>
   );
 }

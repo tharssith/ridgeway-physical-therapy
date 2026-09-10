@@ -1,17 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { CLINIC } from "@/lib/clinic";
 import { initials } from "@/lib/utils";
-import { parsePatientScanPayload } from "@/lib/scan-payload";
 import { QrScanner } from "@/components/staff/qr-scanner";
 
 type Visit = {
   id: string;
+  ticketCode?: string;
   status: string;
   attendance: string;
   visitReason: string;
@@ -27,7 +29,8 @@ type Visit = {
 type PatientCard = {
   name: string;
   phone: string | null;
-  dateOfBirth: string | null;
+  email?: string | null;
+  address?: string | null;
   dateOfBirthLabel: string;
   photoUrl: string | null;
   memberNumber: string;
@@ -53,31 +56,42 @@ function visitTime(iso: string) {
 
 export function CheckInPanel() {
   const queryClient = useQueryClient();
+  const [mode, setMode] = useState<"scan" | "code">("scan");
   const [scanned, setScanned] = useState<string | null>(null);
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [patient, setPatient] = useState<PatientCard | null>(null);
   const [visits, setVisits] = useState<Visit[]>([]);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  const loadCard = useCallback(async (raw: string) => {
-    const parsed = parsePatientScanPayload(raw);
-    if (!parsed) {
-      setError("That code is not a Ridgeway patient card.");
-      return;
-    }
+  const loadFromQuery = useCallback(async (query: string) => {
     setError("");
-    setScanned(raw);
-    const res = await fetch(`/api/staff/check-in?q=${encodeURIComponent(raw)}`);
+    const res = await fetch(`/api/staff/check-in?${query}`);
     const data = await res.json();
     if (!res.ok) {
-      setError(data.error ?? "Unable to load that patient card.");
+      setError(data.error ?? "Unable to load that ticket.");
       setPatient(null);
       setVisits([]);
-      return;
+      return false;
     }
     setPatient(data.patient);
     setVisits(data.visits ?? []);
+    return true;
   }, []);
+
+  const loadCard = useCallback(
+    async (raw: string) => {
+      setScanned(raw);
+      await loadFromQuery(`q=${encodeURIComponent(raw)}`);
+    },
+    [loadFromQuery],
+  );
+
+  async function lookupCode(event: FormEvent) {
+    event.preventDefault();
+    const ok = await loadFromQuery(`code=${encodeURIComponent(code.trim())}`);
+    if (ok) setScanned(`code:${code.trim()}`);
+  }
 
   async function mark(bookingId: string, attendance: "PRESENT" | "ABSENT") {
     setPendingId(bookingId);
@@ -92,7 +106,11 @@ export function CheckInPanel() {
       setError(data.error ?? "Unable to mark attendance.");
       return;
     }
-    if (scanned) await loadCard(scanned);
+    if (scanned?.startsWith("code:")) {
+      await loadFromQuery(`code=${encodeURIComponent(scanned.slice(5))}`);
+    } else if (scanned) {
+      await loadCard(scanned);
+    }
     await queryClient.invalidateQueries({ queryKey: ["staff-schedule"] });
     await queryClient.invalidateQueries({ queryKey: ["staff-overview"] });
     await queryClient.invalidateQueries({ queryKey: ["staff-bookings"] });
@@ -103,16 +121,17 @@ export function CheckInPanel() {
     setPatient(null);
     setVisits([]);
     setError("");
+    setCode("");
+    setMode("scan");
   }
 
   return (
     <Card className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-heading text-xl font-bold">Scan patient card</h2>
+          <h2 className="font-heading text-xl font-bold">Scan visit ticket</h2>
           <p className="mt-1 text-sm text-ink-soft">
-            Scan the QR on a patient’s phone to see their details and visit times, then mark present
-            or absent.
+            Scan the QR on the patient’s ticket, or enter the unique code if the camera cannot read it.
           </p>
         </div>
         {scanned ? (
@@ -122,7 +141,42 @@ export function CheckInPanel() {
         ) : null}
       </div>
 
-      {!scanned ? <div className="mt-4"><QrScanner onScan={loadCard} /></div> : null}
+      {!scanned ? (
+        <div className="mt-4 space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant={mode === "scan" ? "default" : "secondary"}
+              onClick={() => setMode("scan")}
+            >
+              Scan QR
+            </Button>
+            <Button
+              type="button"
+              variant={mode === "code" ? "default" : "secondary"}
+              onClick={() => setMode("code")}
+            >
+              Enter unique number
+            </Button>
+          </div>
+          {mode === "scan" ? <QrScanner onScan={loadCard} /> : (
+            <form onSubmit={lookupCode} className="space-y-3 rounded-[16px] border border-line p-4">
+              <Label htmlFor="ticketCode">Ticket code</Label>
+              <Input
+                id="ticketCode"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                placeholder="RPT-XXXXXX"
+                autoComplete="off"
+                required
+              />
+              <Button type="submit" className="w-full">
+                Look up ticket
+              </Button>
+            </form>
+          )}
+        </div>
+      ) : null}
       {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
 
       {patient ? (
@@ -140,20 +194,23 @@ export function CheckInPanel() {
             </div>
             <div>
               <p className="font-heading text-xl font-extrabold leading-tight">{patient.name}</p>
-              <p className="text-sm text-white/80">{patient.memberNumber}</p>
-              <p className="text-sm text-white/80">
-                DOB {patient.dateOfBirthLabel} · {patient.phone || "No phone"}
-              </p>
+              <p className="text-sm text-white/80">{patient.phone || "No phone"}</p>
+              {patient.address ? <p className="text-sm text-white/80">{patient.address}</p> : null}
             </div>
           </div>
 
           <div className="space-y-3">
             <h3 className="font-heading font-bold">Visit times</h3>
             {visits.length === 0 ? (
-              <p className="text-sm text-ink-soft">No upcoming visits for this patient.</p>
+              <p className="text-sm text-ink-soft">No visit found for this ticket.</p>
             ) : (
               visits.map((visit) => (
                 <div key={visit.id} className="rounded-[16px] border border-line p-4">
+                  {visit.ticketCode ? (
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft">
+                      {visit.ticketCode}
+                    </p>
+                  ) : null}
                   <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
                     {visitDate(visit.startTime)}
                   </p>

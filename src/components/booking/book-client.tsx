@@ -7,9 +7,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { SPECIALTIES, CLINIC, slotDurationMinutes, rateForDuration, formatUsd } from "@/lib/clinic";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { TherapistAvatar } from "@/components/therapist-avatar";
+import { PhotoCapture } from "@/components/account/photo-capture";
 import { useLiveSlots, type LiveSlot } from "@/hooks/use-live-slots";
-import { useSession } from "@/hooks/use-session";
 import { useNow } from "@/hooks/use-now";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +60,6 @@ export function BookClient() {
   const requestedDate = searchParams.get("date");
   const requestedTherapist = searchParams.get("therapist");
   const requestedTod = searchParams.get("tod");
-  const { data: session } = useSession();
   const now = useNow(1000);
   const [specialty, setSpecialty] = useState<string>(searchParams.get("specialty") || "All");
   const [therapistId, setTherapistId] = useState<string | null>(requestedTherapist);
@@ -67,6 +67,11 @@ export function BookClient() {
   const [slotId, setSlotId] = useState<string | null>(null);
   const [visitType, setVisitType] = useState<"FIRST_TIME" | "RETURNING">("FIRST_TIME");
   const [visitReason, setVisitReason] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestAddress, setGuestAddress] = useState("");
+  const [guestPhoto, setGuestPhoto] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -110,11 +115,25 @@ export function BookClient() {
       : null;
 
   async function holdAndPay() {
-    if (!session) {
-      router.push(`/login?next=/book`);
-      return;
-    }
     if (!selectedSlot || !selected) return;
+    if (!rescheduleId) {
+      if (guestName.trim().length < 2) {
+        setError("Enter the patient’s full name.");
+        return;
+      }
+      if (guestPhone.replace(/\D/g, "").length < 10) {
+        setError("Enter a 10-digit phone number.");
+        return;
+      }
+      if (guestAddress.trim().length < 8) {
+        setError("Enter a street address.");
+        return;
+      }
+      if (!guestPhoto) {
+        setError("Add a photo for the visit ticket.");
+        return;
+      }
+    }
     setPending(true);
     setError("");
     if (rescheduleId) {
@@ -139,6 +158,13 @@ export function BookClient() {
         slotId: selectedSlot.id,
         visitReason: visitReason.trim(),
         visitType,
+        guest: {
+          name: guestName.trim(),
+          phone: guestPhone.trim(),
+          email: guestEmail.trim(),
+          address: guestAddress.trim(),
+          photoUrl: guestPhoto,
+        },
       }),
     });
     const payload = await res.json();
@@ -155,6 +181,13 @@ export function BookClient() {
     (slotsQuery.data ?? []).filter((slot) => new Date(slot.startTime).getTime() > now),
   ).filter(
     (group) => !requestedTod || requestedTod === "Any" || group.key === requestedTod,
+  );
+
+  const detailsReady = Boolean(
+    guestName.trim().length >= 2 &&
+      guestPhone.replace(/\D/g, "").length >= 10 &&
+      guestAddress.trim().length >= 8 &&
+      guestPhoto,
   );
 
   return (
@@ -183,7 +216,7 @@ export function BookClient() {
         {loadingTherapists ? (
           <p className="p-6 text-ink-soft">Loading the schedule…</p>
         ) : selected ? (
-          <div className="grid min-w-0 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="grid min-w-0 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="min-w-0 p-5 md:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
               <div className="flex min-w-0 items-center gap-3">
@@ -329,6 +362,48 @@ export function BookClient() {
 
                 <div className={rescheduleId ? "hidden" : "mt-4 space-y-3"}>
                   <div>
+                    <Label htmlFor="guestName">Name</Label>
+                    <Input
+                      id="guestName"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      autoComplete="name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="guestPhone">Phone number</Label>
+                    <Input
+                      id="guestPhone"
+                      type="tel"
+                      value={guestPhone}
+                      onChange={(e) => setGuestPhone(e.target.value)}
+                      autoComplete="tel"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="guestEmail">Email (optional)</Label>
+                    <Input
+                      id="guestEmail"
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      autoComplete="email"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="guestAddress">Address</Label>
+                    <Input
+                      id="guestAddress"
+                      value={guestAddress}
+                      onChange={(e) => setGuestAddress(e.target.value)}
+                      autoComplete="street-address"
+                      required
+                    />
+                  </div>
+                  <PhotoCapture name={guestName} value={guestPhoto} onChange={setGuestPhoto} required />
+                  <div>
                     <Label>Visit type</Label>
                     <select
                       className="h-11 w-full rounded-[12px] border border-line bg-card px-3 text-[16px]"
@@ -359,7 +434,7 @@ export function BookClient() {
                 {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
                 <Button
                   onClick={holdAndPay}
-                  disabled={!selectedSlot || pending}
+                  disabled={!selectedSlot || pending || (!rescheduleId && !detailsReady)}
                   className="mt-4 w-full"
                 >
                   {pending

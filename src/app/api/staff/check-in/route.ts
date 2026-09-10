@@ -4,12 +4,15 @@ import { requireRole } from "@/lib/auth";
 import { jsonError } from "@/lib/utils";
 import { dateOnly, formatDob } from "@/lib/patient";
 import { CLINIC, clinicAddress } from "@/lib/clinic";
+import { formatPhone } from "@/lib/guest";
 import { verifyPatientScanToken } from "@/lib/scan-token";
-import { parsePatientScanPayload } from "@/lib/scan-payload";
+import { parseCheckInPayload } from "@/lib/scan-payload";
 import { markVisitAttendance } from "@/lib/attendance";
+import { normalizeTicketCode, verifyTicketScanToken } from "@/lib/ticket";
 
 function serializeVisit(booking: {
   id: string;
+  ticketCode: string;
   status: string;
   attendance: string;
   visitReason: string;
@@ -19,6 +22,7 @@ function serializeVisit(booking: {
 }) {
   return {
     id: booking.id,
+    ticketCode: booking.ticketCode,
     status: booking.status,
     attendance: booking.attendance,
     visitReason: booking.visitReason,
@@ -32,63 +36,111 @@ function serializeVisit(booking: {
   };
 }
 
+function serializePatient(patient: {
+  name: string;
+  phone: string | null;
+  address: string | null;
+  email: string | null;
+  dateOfBirth: Date | null;
+  photoUrl: string | null;
+  memberNumber: string;
+}) {
+  return {
+    name: patient.name,
+    phone: formatPhone(patient.phone) || patient.phone,
+    email: patient.email,
+    address: patient.address,
+    dateOfBirthLabel: formatDob(dateOnly(patient.dateOfBirth)),
+    photoUrl: patient.photoUrl,
+    memberNumber: patient.memberNumber,
+  };
+}
+
+const visitInclude = {
+  therapist: { include: { user: { select: { name: true } } } },
+} as const;
+
 export async function GET(request: Request) {
   try {
     await requireRole("ADMIN", "THERAPIST");
     const url = new URL(request.url);
+    const typedCode = url.searchParams.get("code");
     const raw = url.searchParams.get("q");
-    const parsed = raw
-      ? parsePatientScanPayload(raw)
-      : {
-          memberNumber: url.searchParams.get("memberNumber") ?? "",
-          token: url.searchParams.get("t") ?? undefined,
-        };
-    if (!parsed?.memberNumber || !verifyPatientScanToken(parsed.memberNumber, parsed.token)) {
-      return jsonError("That QR code is not a valid Ridgeway patient card.", 400);
+
+    if (typedCode) {
+      const ticketCode = normalizeTicketCode(typedCode);
+      if (!ticketCode) return jsonError("Enter the 6-character ticket code from the visit ticket.", 400);
+      const booking = await prisma.booking.findUnique({
+        where: { ticketCode },
+        include: {
+          patient: true,
+          ...visitInclude,
+        },
+      });
+      if (!booking) return jsonError("No visit matches that ticket code.", 404);
+      return Response.json({
+        patient: serializePatient(booking.patient),
+        visits: [serializeVisit(booking)],
+        timezone: CLINIC.timezone,
+      });
+    }
+
+    const parsed = raw ? parseCheckInPayload(raw) : null;
+    if (!parsed) {
+      return jsonError("Scan the ticket QR or enter the unique ticket code.", 400);
+    }
+
+    if (parsed.kind === "ticket" || parsed.kind === "code") {
+      const ticketCode = normalizeTicketCode(parsed.kind === "ticket" ? parsed.code : parsed.code);
+      if (!ticketCode) return jsonError("That ticket code is not valid.", 400);
+      if (parsed.kind === "ticket" && parsed.token && !verifyTicketScanToken(ticketCode, parsed.token)) {
+        return jsonError("That QR code is not a valid Ridgeway visit ticket.", 400);
+      }
+      const booking = await prisma.booking.findUnique({
+        where: { ticketCode },
+        include: {
+          patient: true,
+          ...visitInclude,
+        },
+      });
+      if (!booking) return jsonError("No visit matches that ticket.", 404);
+      return Response.json({
+        patient: serializePatient(booking.patient),
+        visits: [serializeVisit(booking)],
+        timezone: CLINIC.timezone,
+      });
+    }
+
+    if (!verifyPatientScanToken(parsed.memberNumber, parsed.token)) {
+      return jsonError("That QR code is not a valid Ridgeway ticket.", 400);
     }
 
     const patient = await prisma.user.findUnique({
       where: { memberNumber: parsed.memberNumber },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        dateOfBirth: true,
-        photoUrl: true,
-        memberNumber: true,
-        role: true,
+      include: {
         bookings: {
           where: {
             status: { in: ["CONFIRMED", "PENDING_PAYMENT"] },
             visitEnd: { gte: new Date(Date.now() - 2 * 60 * 60 * 1000) },
           },
-          include: {
-            therapist: { include: { user: { select: { name: true } } } },
-          },
+          include: visitInclude,
           orderBy: { visitStart: "asc" },
         },
       },
     });
 
-    if (!patient || patient.role !== "PATIENT" || !patient.memberNumber) {
-      return jsonError("No patient matches that card.", 404);
+    if (!patient || patient.role !== "PATIENT") {
+      return jsonError("No patient matches that ticket.", 404);
     }
 
     return Response.json({
-      patient: {
-        name: patient.name,
-        phone: patient.phone,
-        dateOfBirth: dateOnly(patient.dateOfBirth),
-        dateOfBirthLabel: formatDob(dateOnly(patient.dateOfBirth)),
-        photoUrl: patient.photoUrl,
-        memberNumber: patient.memberNumber,
-      },
+      patient: serializePatient(patient),
       visits: patient.bookings.map(serializeVisit),
       timezone: CLINIC.timezone,
     });
   } catch (error) {
     const status = (error as { status?: number }).status ?? 401;
-    return jsonError(error instanceof Error ? error.message : "Unable to load that card.", status);
+    return jsonError(error instanceof Error ? error.message : "Unable to load that ticket.", status);
   }
 }
 

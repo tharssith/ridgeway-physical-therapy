@@ -49,10 +49,11 @@ enum Attendance {
 model User {
   id           String    @id @default(cuid())
   name         String
-  email        String    @unique
-  passwordHash String
+  email        String?   @unique
+  passwordHash String?
   role         Role      @default(PATIENT)
   phone        String?
+  address      String?
   dateOfBirth  DateTime? @db.Date
   photoUrl     String?
   memberNumber String    @unique
@@ -124,6 +125,7 @@ model Booking {
   patient      User              @relation("PatientBookings", fields: [patientId], references: [id])
   therapistId  String
   therapist    Therapist         @relation(fields: [therapistId], references: [id])
+  ticketCode   String            @unique
   status       BookingStatus     @default(PENDING_PAYMENT)
   attendance   Attendance        @default(UNMARKED)
   visitStart   DateTime

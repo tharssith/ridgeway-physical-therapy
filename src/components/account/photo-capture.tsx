@@ -63,7 +63,7 @@ export function PhotoCapture({
             onChange={onFile}
             className="block w-full text-sm text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
           />
-          <p className="mt-1 text-xs text-ink-soft">A clear headshot for your clinic card.</p>
+          <p className="mt-1 text-xs text-ink-soft">A clear headshot for your visit ticket.</p>
         </div>
       </div>
     </div>

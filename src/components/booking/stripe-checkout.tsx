@@ -5,7 +5,7 @@ import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-
 import { loadStripe } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/button";
 
-function StripeForm({ bookingId }: { bookingId: string }) {
+function StripeForm({ ticketCode }: { ticketCode: string }) {
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState("");
@@ -18,7 +18,7 @@ function StripeForm({ bookingId }: { bookingId: string }) {
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/book/confirmation/${bookingId}`,
+        return_url: `${window.location.origin}/book/ticket/${encodeURIComponent(ticketCode)}`,
       },
       redirect: "if_required",
     });
@@ -27,7 +27,7 @@ function StripeForm({ bookingId }: { bookingId: string }) {
       setError(result.error.message ?? "Payment was not completed.");
       return;
     }
-    window.location.assign(`/book/confirmation/${bookingId}`);
+    window.location.assign(`/book/ticket/${encodeURIComponent(ticketCode)}`);
   }
 
   return (
@@ -48,10 +48,12 @@ function StripeForm({ bookingId }: { bookingId: string }) {
 
 export function StripeCheckout({
   bookingId,
+  ticketCode,
   publishableKey,
   clientSecret,
 }: {
   bookingId: string;
+  ticketCode: string;
   publishableKey: string;
   clientSecret: string;
 }) {
@@ -65,7 +67,7 @@ export function StripeCheckout({
         appearance: { theme: "stripe" },
       }}
     >
-      <StripeForm bookingId={bookingId} />
+      <StripeForm ticketCode={ticketCode || bookingId} />
     </Elements>
   );
 }

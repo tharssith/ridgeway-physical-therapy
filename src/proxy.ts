@@ -8,10 +8,7 @@ function secret() {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("ridgeway_session")?.value;
-  const needsAuth =
-    pathname.startsWith("/account") ||
-    pathname.startsWith("/staff") ||
-    pathname.startsWith("/book");
+  const needsAuth = pathname.startsWith("/account") || pathname.startsWith("/staff");
 
   if (!needsAuth) return NextResponse.next();
 
@@ -39,5 +36,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/account/:path*", "/staff/:path*", "/book", "/book/:path*"],
+  matcher: ["/account/:path*", "/staff/:path*"],
 };

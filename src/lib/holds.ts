@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { CLINIC, rateForDuration, slotDurationMinutes } from "@/lib/clinic";
 import { emitSerializedSlot } from "@/lib/slots";
 import { getStripe } from "@/lib/stripe";
+import { createTicketCode } from "@/lib/ticket";
 
 export async function releaseExpiredHolds() {
   const now = new Date();
@@ -131,11 +132,19 @@ export async function holdSlot(params: {
     const duration = slotDurationMinutes(slot.startTime, slot.endTime);
     const amount = rateForDuration(slot.therapist, duration);
 
+    let ticketCode = createTicketCode();
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const taken = await tx.booking.findUnique({ where: { ticketCode } });
+      if (!taken) break;
+      ticketCode = createTicketCode();
+    }
+
     const booking = await tx.booking.create({
       data: {
         slotId: slot.id,
         patientId: params.patientId,
         therapistId: slot.therapistId,
+        ticketCode,
         visitStart: slot.startTime,
         visitEnd: slot.endTime,
         visitReason: params.visitReason,

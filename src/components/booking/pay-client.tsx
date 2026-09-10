@@ -19,6 +19,7 @@ const StripeCheckout = dynamic(
 type BookingPayload = {
   booking: {
     id: string;
+    ticketCode: string;
     status: string;
     startTime: string;
     duration: number;
@@ -31,7 +32,11 @@ type BookingPayload = {
   };
 };
 
-function DemoCheckout({ bookingId }: { bookingId: string }) {
+function ticketHref(code: string) {
+  return `/book/ticket/${encodeURIComponent(code)}`;
+}
+
+function DemoCheckout({ bookingId, ticketCode }: { bookingId: string; ticketCode: string }) {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -49,7 +54,7 @@ function DemoCheckout({ bookingId }: { bookingId: string }) {
       setError(data.error ?? "Payment could not be completed.");
       return;
     }
-    window.location.assign(`/book/confirmation/${bookingId}`);
+    window.location.assign(ticketHref(data.ticketCode || ticketCode));
   }
 
   return (
@@ -93,15 +98,16 @@ export function PayClient({ bookingId }: { bookingId: string }) {
         publishableKey: string;
         clientSecret: string | null;
         holdUntil: string;
+        ticketCode?: string;
       };
     },
   });
 
   useEffect(() => {
-    if (bookingQuery.data?.status === "CONFIRMED") {
-      window.location.replace(`/book/confirmation/${bookingId}`);
+    if (bookingQuery.data?.status === "CONFIRMED" && bookingQuery.data.ticketCode) {
+      window.location.replace(ticketHref(bookingQuery.data.ticketCode));
     }
-  }, [bookingQuery.data?.status, bookingId]);
+  }, [bookingQuery.data?.status, bookingQuery.data?.ticketCode]);
 
   if (bookingQuery.isError || intentQuery.isError) {
     return (
@@ -172,11 +178,12 @@ export function PayClient({ bookingId }: { bookingId: string }) {
         {useStripeCheckout ? (
           <StripeCheckout
             bookingId={bookingId}
+            ticketCode={booking.ticketCode || intent.ticketCode || ""}
             publishableKey={intent.publishableKey}
             clientSecret={intent.clientSecret!}
           />
         ) : (
-          <DemoCheckout bookingId={bookingId} />
+          <DemoCheckout bookingId={bookingId} ticketCode={booking.ticketCode || intent.ticketCode || ""} />
         )}
       </Card>
     </div>

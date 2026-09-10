@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     return Response.json({
       bookings: bookings.map((booking) => ({
         id: booking.id,
+        ticketCode: booking.ticketCode,
         status: booking.status,
         patientName: booking.patient.name,
         patientEmail: booking.patient.email,

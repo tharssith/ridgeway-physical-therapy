@@ -16,7 +16,10 @@ export async function POST(request: Request) {
   const user = await prisma.user.findUnique({
     where: { email: parsed.data.email.toLowerCase() },
   });
-  if (!user || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
+  if (!user || !user.passwordHash || user.role === "PATIENT") {
+    return jsonError("Email or password is incorrect.", 401);
+  }
+  if (!(await verifyPassword(parsed.data.password, user.passwordHash))) {
     return jsonError("Email or password is incorrect.", 401);
   }
 

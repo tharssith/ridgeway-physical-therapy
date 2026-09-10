@@ -43,6 +43,7 @@ export default function StaffBookingsPage() {
         {(data?.bookings ?? []).map(
           (row: {
             id: string;
+            ticketCode?: string;
             patientName: string;
             patientPhone: string | null;
             therapistName: string;
@@ -56,6 +57,7 @@ export default function StaffBookingsPage() {
                   <p className="text-xl font-semibold leading-tight">{row.patientName}</p>
                   <p className="text-lg">{when(row.startTime)}</p>
                   <p className="text-sm text-ink-soft">
+                    {row.ticketCode ? `${row.ticketCode} · ` : ""}
                     {row.therapistName} · {row.patientPhone ?? "No phone on file"}
                   </p>
                   {row.visitReason ? <p className="mt-2 text-sm">{row.visitReason}</p> : null}

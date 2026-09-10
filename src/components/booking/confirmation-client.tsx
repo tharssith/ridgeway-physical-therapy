@@ -16,6 +16,7 @@ export function ConfirmationClient({ bookingId }: { bookingId: string }) {
       const payload = await res.json();
       if (!res.ok) throw new Error(payload.error);
       return payload.booking as {
+        ticketCode: string;
         status: string;
         startTime: string;
         duration: number;
@@ -31,6 +32,13 @@ export function ConfirmationClient({ bookingId }: { bookingId: string }) {
 
   if (isLoading || !data) {
     return <p className="text-ink-soft">Loading your confirmation…</p>;
+  }
+
+  if (data.status === "CONFIRMED" && data.ticketCode) {
+    if (typeof window !== "undefined") {
+      window.location.replace(`/book/ticket/${encodeURIComponent(data.ticketCode)}`);
+    }
+    return <p className="text-ink-soft">Opening your visit ticket…</p>;
   }
 
   if (data.status !== "CONFIRMED") {
@@ -96,7 +104,9 @@ export function ConfirmationClient({ bookingId }: { bookingId: string }) {
       </div>
       <div className="mt-6 flex gap-3">
         <Button asChild>
-          <Link href="/account">View my appointments</Link>
+          <Link href={data.ticketCode ? `/book/ticket/${encodeURIComponent(data.ticketCode)}` : "/book"}>
+            View ticket
+          </Link>
         </Button>
         <Button asChild variant="secondary">
           <Link href="/book">Book another visit</Link>
