@@ -173,6 +173,7 @@ export function AccountClient() {
           phone={session.phone}
           photoUrl={session.photoUrl}
           memberNumber={session.memberNumber}
+          scanPath={session.scanPath || ""}
         />
       ) : null}
 

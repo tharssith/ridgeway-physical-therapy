@@ -11,6 +11,7 @@ export type Session = {
   dateOfBirth: string | null;
   photoUrl: string | null;
   memberNumber: string;
+  scanPath: string;
 };
 
 export function useSession() {

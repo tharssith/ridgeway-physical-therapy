@@ -1,17 +1,8 @@
 import { CLINIC } from "@/lib/clinic";
 import { initials } from "@/lib/utils";
+import { formatDob } from "@/lib/patient";
 import { PatientBarcode } from "@/components/account/patient-barcode";
-
-function formatDob(value: string | null) {
-  if (!value) return "Add date of birth";
-  const [year, month, day] = value.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
+import { PatientQr } from "@/components/account/patient-qr";
 
 export function PatientCard({
   name,
@@ -19,12 +10,14 @@ export function PatientCard({
   phone,
   photoUrl,
   memberNumber,
+  scanPath,
 }: {
   name: string;
   dateOfBirth: string | null;
   phone: string | null;
   photoUrl: string | null;
   memberNumber: string;
+  scanPath: string;
 }) {
   return (
     <section
@@ -72,11 +65,20 @@ export function PatientCard({
         </dl>
       </div>
 
-      <div className="bg-white px-4 py-3 md:px-5">
-        <PatientBarcode value={memberNumber} />
-        <p className="mt-1 text-center font-heading text-xs font-bold tracking-[0.18em] text-ink">
-          {memberNumber}
-        </p>
+      <div className="flex flex-col items-center gap-4 bg-white px-4 py-4 text-ink sm:flex-row sm:items-center sm:justify-between md:px-5">
+        <div className="min-w-0 flex-1">
+          <p className="font-heading text-sm font-bold text-primary">Scan for patient information</p>
+          <p className="mt-1 text-sm text-ink-soft">
+            Front desk cameras open this card: name, date of birth, photo, phone, and the next visit.
+          </p>
+          <div className="mt-3">
+            <PatientBarcode value={memberNumber} />
+            <p className="mt-1 font-heading text-xs font-bold tracking-[0.18em]">{memberNumber}</p>
+          </div>
+        </div>
+        <div className="shrink-0 rounded-[14px] border border-line p-2">
+          <PatientQr path={scanPath} label={`Scan ${name}'s Ridgeway patient card`} />
+        </div>
       </div>
     </section>
   );

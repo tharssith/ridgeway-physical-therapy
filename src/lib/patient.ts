@@ -28,3 +28,14 @@ export function assertPhotoDataUrl(value: string) {
   }
   return value;
 }
+
+export function formatDob(value: string | null) {
+  if (!value) return "Add date of birth";
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
