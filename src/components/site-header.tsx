@@ -31,9 +31,6 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav className="flex shrink-0 items-center gap-2 text-[15px] sm:gap-4">
-          <Link href="/book" className="hidden text-white/80 hover:text-white sm:inline">
-            Book a visit
-          </Link>
           {staff ? (
             <>
               <Link href="/staff" className="hidden text-white/80 hover:text-white sm:inline">
@@ -50,7 +47,7 @@ export function SiteHeader() {
                 Staff
               </Link>
               <Button asChild size="sm">
-                <Link href="/book">Book now</Link>
+                <Link href="/book">Book a visit</Link>
               </Button>
             </>
           )}

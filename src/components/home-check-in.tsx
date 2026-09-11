@@ -17,11 +17,5 @@ export function HomeCheckIn() {
     );
   }
 
-  return (
-    <div className="mt-8 flex flex-wrap gap-3">
-      <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
-        <Link href="/book">Book a visit</Link>
-      </Button>
-    </div>
-  );
+  return null;
 }
